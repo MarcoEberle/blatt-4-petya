@@ -1,5 +1,11 @@
 package main
 
+// https://ewanvalentine.io/microservices-in-golang-part-1/
+// Mutex auf Datastore -> bei uns wahrscheinlich der Speicher der IDs, etc.
+// Wobei wir eh so ne Art Repo für die einzelnen Sachen benutzen
+// Erinnerung: so ähnlich wie bei Software Engineering, nur anders
+//
+
 import (
 	"context"
 	"fmt"

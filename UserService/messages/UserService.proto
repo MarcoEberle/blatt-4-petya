@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+service UserService {
+    rpc CreateUser(CreateUserMessage) returns (CreateUserResponse) {}
+    rpc DeleteUser(DeleteUserMessage) returns (DeleteUserResponse) {}
+    rpc GetUser(GetUserMessage) returns (GetUserResponse) {}
+}
+
+message CreateUserMessage {
+    int32 userID = 1;
+    string userName = 2;
+}
+
+message CreateUserResponse {
+    int32 userID = 1;
+}
+
+message DeleteUserMessage {
+    int32 userID = 1;
+}
+
+message DeleteUserResponse {
+    bool success = 1;
+}
+
+message GetUserMessage {
+    int32 userID = 1;
+}
+
+message GetUserResponse {
+    int32 userID = 1;
+    string userName = 2;
+}
