@@ -9,6 +9,8 @@ service HallService {
 
 message CreateHallMessage {
     string hallName = 1;
+    int32 rows = 2;
+    int32 seatsPerRow = 3;
 }
 
 message CreateHallResponse {
@@ -25,11 +27,15 @@ message DeleteHallResponse {
 
 message GetHallMessage {
     int32 hallID = 1;
+    string rows = 2;
+    string seatsPerRow = 3;
 }
 
 message GetHallResponse {
     int32 hallID = 1;
     string hallName = 2;
+    int32 rows = 3;
+    int32 seatsPerRow = 4;
 }
 
 message VerifySeatMessage {
