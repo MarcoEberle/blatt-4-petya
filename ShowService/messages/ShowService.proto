@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+service ShowService {
+    rpc CreateShow(CreateShowMessage) returns (CreateShowResponse) {}
+    rpc DeleteShow(DeleteShowMessage) returns (DeleteShowResponse) {}
+    rpc BlockSeats(BlockSeatMessage) returns (BlockSeatResponse) {}
+    rpc LockSeats(LockSeatMessage) returns (LockSeatResponse) {}
+    rpc VerifySeat(VerifySeatMessage) returns (VerifySeatResponse) {}
+}
+
+message CreateShowMessage {
+    int32 movieID = 1;
+    int32 hallID = 2;
+}
+
+message CreateShowResponse {
+    int32 ShowID = 1;
+}
+
+message DeleteShowMessage {
+    int32 ShowID = 1;
+}
+
+message DeleteShowResponse {
+    bool success = 1;
+}
+
+message BlockSeatMessage {
+    int32 bookingID = 3;
+    int32 showID = 1;
+    repeated int32 seatID = 2;
+}
+
+message BlockSeatResponse {
+    bool success = 1;
+    int32 bookingID = 2;
+}
+
+message LockSeatMessage {
+    int32 showID = 1;
+    int32 bookingID = 2;
+}
+
+message LockSeatResponse {
+    bool success = 1;
+    int32 bookingID = 2;
+}
+
+message VerifySeatMessage {
+    repeated int32 seatID = 1;
+}
+
+message VerifySeatResponse {
+    bool success = 1;
+}
+
+

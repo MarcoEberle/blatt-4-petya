@@ -3,6 +3,7 @@ syntax = "proto3";
 service BookingService {
     rpc PrepareBooking(PrepareBookingMessage) returns (PrepareBookingResponse) {}
     rpc CreateBooking(CreateBookingMessage) returns (CreateBookingResponse) {}
+    rpc ConfirmBooking(ConfirmBookingMessage) returns (ConfirmBookingResponse) {}
     rpc DeleteBooking(DeleteBookingMessage) returns (DeleteBookingResponse) {}
     rpc GetUserBookings(GetUserBookingsMessage) returns (GetUserBookingsResponse) {}
     rpc GetBooking(GetBookingMessage) returns (GetBookingResponse) {}
@@ -22,6 +23,15 @@ message CreateBookingMessage {
 }
 
 message CreateBookingResponse {
+    int32 bookingID = 1;
+}
+
+message ConfirmBookingMessage {
+    int32 userID = 1;
+    int32 bookingID = 2;
+}
+
+message ConfirmBookingResponse {
     int32 bookingID = 1;
 }
 
