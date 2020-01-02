@@ -9,9 +9,8 @@ service BookingService {
 }
 
 message PrepareBookingMessage {
-    int32 userID = 1;
-    int32 showID = 2;
-    repeated int32 seats = 3;
+    int32 showID = 1;
+    repeated int32 seats = 2;
 }
 
 message PrepareBookingResponse {
@@ -20,8 +19,6 @@ message PrepareBookingResponse {
 
 message CreateBookingMessage {
     int32 userID = 1;
-    int32 showID = 2;
-    repeated int32 seats = 3;
 }
 
 message CreateBookingResponse {

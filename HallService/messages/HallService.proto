@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+service HallService {
+    rpc CreateHall(CreateHallMessage) returns (CreateHallResponse) {}
+    rpc DeleteHall(DeleteHallMessage) returns (DeleteHallResponse) {}
+    rpc GetHall(GetHallMessage) returns (GetHallResponse) {}
+    rpc VerifySeat(VerifySeatMessage) returns (VerifySeatResponse) {}
+}
+
+message CreateHallMessage {
+    string hallName = 1;
+}
+
+message CreateHallResponse {
+    int32 hallID = 1;
+}
+
+message DeleteHallMessage {
+    int32 hallID = 1;
+}
+
+message DeleteHallResponse {
+    bool success = 1;
+}
+
+message GetHallMessage {
+    int32 hallID = 1;
+}
+
+message GetHallResponse {
+    int32 hallID = 1;
+    string hallName = 2;
+}
+
+message VerifySeatMessage {
+    int32 hallID = 1;
+    int32 seatID = 2;
+}
+
+message VerifySeatResponse {
+    bool success = 1;
+}
+
+
+
+
+
+

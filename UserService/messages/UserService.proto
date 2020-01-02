@@ -7,8 +7,7 @@ service UserService {
 }
 
 message CreateUserMessage {
-    int32 userID = 1;
-    string userName = 2;
+    string userName = 1;
 }
 
 message CreateUserResponse {
