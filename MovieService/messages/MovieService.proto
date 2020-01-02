@@ -3,6 +3,7 @@ syntax = "proto3";
 service MovieService {
     rpc CreateMovie(CreateMovieMessage) returns (CreateMovieResponse) {}
     rpc DeleteMovie(DeleteMovieMessage) returns (DeleteMovieResponse) {}
+    rpc GetMovie(GetMovieMessage) returns (GetMovieResponse) {}
 }
 
 message CreateMovieMessage {
@@ -19,4 +20,13 @@ message DeleteMovieMessage {
 
 message DeleteMovieResponse {
     bool success = 1;
+}
+
+message GetMovieMessage {
+    int32 MovieID = 1;
+}
+
+message GetMovieResponse {
+    int32 MovieID = 1;
+    string title = 2;
 }

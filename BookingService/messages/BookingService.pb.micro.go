@@ -39,6 +39,7 @@ type BookingService interface {
 	DeleteBooking(ctx context.Context, in *DeleteBookingMessage, opts ...client.CallOption) (*DeleteBookingResponse, error)
 	GetUserBookings(ctx context.Context, in *GetUserBookingsMessage, opts ...client.CallOption) (*GetUserBookingsResponse, error)
 	GetBooking(ctx context.Context, in *GetBookingMessage, opts ...client.CallOption) (*GetBookingResponse, error)
+	KillBookings(ctx context.Context, in *KillBookingsMessage, opts ...client.CallOption) (*KillBookingsResponse, error)
 }
 
 type bookingService struct {
@@ -109,6 +110,16 @@ func (c *bookingService) GetBooking(ctx context.Context, in *GetBookingMessage, 
 	return out, nil
 }
 
+func (c *bookingService) KillBookings(ctx context.Context, in *KillBookingsMessage, opts ...client.CallOption) (*KillBookingsResponse, error) {
+	req := c.c.NewRequest(c.name, "BookingService.KillBookings", in)
+	out := new(KillBookingsResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for BookingService service
 
 type BookingServiceHandler interface {
@@ -117,6 +128,7 @@ type BookingServiceHandler interface {
 	DeleteBooking(context.Context, *DeleteBookingMessage, *DeleteBookingResponse) error
 	GetUserBookings(context.Context, *GetUserBookingsMessage, *GetUserBookingsResponse) error
 	GetBooking(context.Context, *GetBookingMessage, *GetBookingResponse) error
+	KillBookings(context.Context, *KillBookingsMessage, *KillBookingsResponse) error
 }
 
 func RegisterBookingServiceHandler(s server.Server, hdlr BookingServiceHandler, opts ...server.HandlerOption) error {
@@ -126,6 +138,7 @@ func RegisterBookingServiceHandler(s server.Server, hdlr BookingServiceHandler, 
 		DeleteBooking(ctx context.Context, in *DeleteBookingMessage, out *DeleteBookingResponse) error
 		GetUserBookings(ctx context.Context, in *GetUserBookingsMessage, out *GetUserBookingsResponse) error
 		GetBooking(ctx context.Context, in *GetBookingMessage, out *GetBookingResponse) error
+		KillBookings(ctx context.Context, in *KillBookingsMessage, out *KillBookingsResponse) error
 	}
 	type BookingService struct {
 		bookingService
@@ -156,4 +169,8 @@ func (h *bookingServiceHandler) GetUserBookings(ctx context.Context, in *GetUser
 
 func (h *bookingServiceHandler) GetBooking(ctx context.Context, in *GetBookingMessage, out *GetBookingResponse) error {
 	return h.BookingServiceHandler.GetBooking(ctx, in, out)
+}
+
+func (h *bookingServiceHandler) KillBookings(ctx context.Context, in *KillBookingsMessage, out *KillBookingsResponse) error {
+	return h.BookingServiceHandler.KillBookings(ctx, in, out)
 }

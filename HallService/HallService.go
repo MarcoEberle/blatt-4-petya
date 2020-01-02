@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/messages"
+	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/messages"
 	"sync"
 )
 
@@ -17,7 +18,7 @@ type HallMicroService struct {
 	HallRepository map[int32]*Hall
 	NextID         int32
 	mu             *sync.RWMutex
-	ShowService    func() ShowSerivce.ShowService
+	ShowService    func() ShowService.ShowService
 }
 
 func Spawn() *HallMicroService {
@@ -49,14 +50,26 @@ func (hsrv HallMicroService) DeleteHall(context context.Context, req *HallServic
 	_, hall := hsrv.HallRepository[req.HallID]
 	if hall {
 		delete(hsrv.HallRepository, req.HallID)
+
+		s := hsrv.ShowService()
+
+		message := &ShowService.KillShowsMessage{
+			HallID: req.HallID,
+		}
+
+		s.KillShows(context, message)
+
 		res.Success = true
+		hsrv.mu.Unlock()
 		return nil
 	}
 
+	hsrv.mu.Unlock()
 	return fmt.Errorf("The hall could not be deleted.")
 }
 
 func (hsrv HallMicroService) GetHall(context context.Context, req *HallService.GetHallMessage, res *HallService.GetHallResponse) error {
+	hsrv.mu.Lock()
 	_, hall := hsrv.HallRepository[req.HallID]
 	if hall {
 		h := hsrv.HallRepository[req.HallID]
@@ -64,24 +77,39 @@ func (hsrv HallMicroService) GetHall(context context.Context, req *HallService.G
 		res.HallName = h.hallName
 		res.SeatsPerRow = h.seatsPerRow
 		res.Rows = h.rows
+		hsrv.mu.Unlock()
 		return nil
 	}
 
+	hsrv.mu.Unlock()
 	return fmt.Errorf("The hall could not be found.")
 }
 
 func (hsrv HallMicroService) VerifySeat(context context.Context, req *HallService.VerifySeatMessage, res *HallService.VerifySeatResponse) error {
+	hsrv.mu.Lock()
+	res.Success = false
 	_, hall := hsrv.HallRepository[req.HallID]
 	if hall {
 		h := hsrv.HallRepository[req.HallID]
 
-		res.Success = req.SeatID <= h.rows*h.seatsPerRow
-		return nil
+		for _, ele := range req.SeatID {
+			if ele > h.rows*h.seatsPerRow {
+				hsrv.mu.Unlock()
+				return fmt.Errorf("The seats are not existing.")
+			}
+		}
+	} else {
+		hsrv.mu.Unlock()
+		return fmt.Errorf("The hall could not be found.")
 	}
 
-	return fmt.Errorf("The hall could not be found.")
+	res.Success = true
+	hsrv.mu.Unlock()
+	return nil
 }
 
-func (usrv HallMicroService) SetBookingService(shsrv func() ShowSerivce.ShowSerivce) {
+func (usrv HallMicroService) SetBookingService(shsrv func() ShowService.ShowService) {
+	usrv.mu.Lock()
 	usrv.ShowService = shsrv
+	usrv.mu.Unlock()
 }

@@ -30,6 +30,18 @@ type BookingMicroService struct {
 	mu                *sync.RWMutex
 }
 
+func (bksrv BookingMicroService) SetShowService(shsrv func() ShowService.ShowService) {
+	bksrv.mu.Lock()
+	bksrv.ShowService = shsrv
+	bksrv.mu.Unlock()
+}
+
+func (bksrv BookingMicroService) SetHallService(hsrv func() HallService.HallService) {
+	bksrv.mu.Lock()
+	bksrv.HallService = hsrv
+	bksrv.mu.Unlock()
+}
+
 func (bksrv *BookingMicroService) ResetBookings() {
 	bksrv.mu.Lock()
 	for bkID, ele := range bksrv.bookingRepository {
@@ -110,11 +122,11 @@ func (bksrv *BookingMicroService) CreateBooking(context context.Context, req *Bo
 	return nil
 }
 
-func (bksrv *BookingMicroService) DeleteBooking(context context.Context, req *BookingService.DeleteBookingMessage, res *BookingService.DeleteBookingResponse) error {
+func (bksrv *BookingMicroService) DeleteElement(context context.Context, bookingID int32) error {
 	bksrv.mu.Lock()
 	s := bksrv.ShowService()
 
-	booking, ok := bksrv.bookingRepository[req.BookingID]
+	booking, ok := bksrv.bookingRepository[bookingID]
 	if !ok {
 		bksrv.mu.Unlock()
 		return fmt.Errorf("The booking does not exist.")
@@ -122,19 +134,24 @@ func (bksrv *BookingMicroService) DeleteBooking(context context.Context, req *Bo
 
 	message := &ShowService.FreeSeatMessage{
 		ShowID:    booking.ShowID,
-		BookingID: req.BookingID,
+		BookingID: bookingID,
 	}
 
 	s.FreeSeats(context, message)
 
-	delete(bksrv.bookingRepository, req.BookingID)
+	delete(bksrv.bookingRepository, bookingID)
 
 	bksrv.mu.Unlock()
 
 	return nil
 }
 
+func (bksrv *BookingMicroService) DeleteBooking(context context.Context, req *BookingService.DeleteBookingMessage, res *BookingService.DeleteBookingResponse) error {
+	return bksrv.DeleteElement(context, req.BookingID)
+}
+
 func (bksrv *BookingMicroService) GetUserBookings(context context.Context, req *BookingService.GetUserBookingsMessage, res *BookingService.GetUserBookingsResponse) error {
+	bksrv.mu.Lock()
 	var bookings []int32
 
 	for index, ele := range bksrv.bookingRepository {
@@ -146,10 +163,12 @@ func (bksrv *BookingMicroService) GetUserBookings(context context.Context, req *
 	res.BookingID = bookings
 	res.UserID = req.UserID
 
+	bksrv.mu.Unlock()
 	return nil
 }
 
 func (bksrv *BookingMicroService) GetBooking(context context.Context, req *BookingService.GetBookingMessage, res *BookingService.GetBookingResponse) error {
+	bksrv.mu.Lock()
 	booking, ok := bksrv.bookingRepository[req.BookingID]
 	if ok {
 		res.BookingID = req.BookingID
@@ -157,8 +176,23 @@ func (bksrv *BookingMicroService) GetBooking(context context.Context, req *Booki
 		res.ShowID = booking.ShowID
 		res.Seats = booking.Seats
 
+		bksrv.mu.Unlock()
 		return nil
 	}
 
+	bksrv.mu.Unlock()
 	return fmt.Errorf("The booking does not exist.")
+}
+
+func (bksrv *BookingMicroService) KillBookings(context context.Context, req *BookingService.KillBookingsMessage, res *BookingService.KillBookingsResponse) error {
+	bksrv.mu.Lock()
+
+	for index, ele := range bksrv.bookingRepository {
+		if ele.ShowID == req.ShowID {
+			bksrv.DeleteElement(context, index)
+		}
+	}
+
+	bksrv.mu.Unlock()
+	return nil
 }

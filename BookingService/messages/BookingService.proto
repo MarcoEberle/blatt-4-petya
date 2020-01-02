@@ -6,6 +6,15 @@ service BookingService {
     rpc DeleteBooking(DeleteBookingMessage) returns (DeleteBookingResponse) {}
     rpc GetUserBookings(GetUserBookingsMessage) returns (GetUserBookingsResponse) {}
     rpc GetBooking(GetBookingMessage) returns (GetBookingResponse) {}
+    rpc KillBookings(KillBookingsMessage) returns (KillBookingsResponse) {}
+}
+
+message KillBookingsMessage {
+    int32 showID = 1;
+}
+
+message KillBookingsResponse {
+    bool success = 1;
 }
 
 message CreateBookingMessage {

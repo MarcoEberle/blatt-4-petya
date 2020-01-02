@@ -7,6 +7,24 @@ service ShowService {
     rpc LockSeats(LockSeatMessage) returns (LockSeatResponse) {}
     rpc FreeSeats(FreeSeatMessage) returns (FreeSeatResponse) {}
     rpc VerifySeat(VerifySeatMessage) returns (VerifySeatResponse) {}
+    rpc KillShowsHall(KillShowsHallMessage) returns (KillShowsHallResponse) {}
+    rpc KillShowsMovie(KillShowsMovieMessage) returns (KillShowsMovieResponse) {}
+}
+
+message KillShowsMovieMessage {
+    int32 movieID = 1;
+}
+
+message KillShowsMovieResponse {
+    bool success = 1;
+}
+
+message KillShowsHallMessage {
+    int32 hallID = 1;
+}
+
+message KillShowsHallResponse {
+    bool success = 1;
 }
 
 message CreateShowMessage {

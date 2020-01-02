@@ -3,7 +3,6 @@ module github.com/ob-vss-ws19/blatt-4-petya
 go 1.12
 
 require (
-	github.com/gogo/protobuf v1.2.1
 	github.com/golang/protobuf v1.3.2
 	github.com/micro/go-micro v1.18.0
 	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876 // indirect

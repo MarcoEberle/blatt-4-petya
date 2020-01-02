@@ -36,6 +36,7 @@ var _ server.Option
 type MovieService interface {
 	CreateMovie(ctx context.Context, in *CreateMovieMessage, opts ...client.CallOption) (*CreateMovieResponse, error)
 	DeleteMovie(ctx context.Context, in *DeleteMovieMessage, opts ...client.CallOption) (*DeleteMovieResponse, error)
+	GetMovie(ctx context.Context, in *GetMovieMessage, opts ...client.CallOption) (*GetMovieResponse, error)
 }
 
 type movieService struct {
@@ -76,17 +77,29 @@ func (c *movieService) DeleteMovie(ctx context.Context, in *DeleteMovieMessage, 
 	return out, nil
 }
 
+func (c *movieService) GetMovie(ctx context.Context, in *GetMovieMessage, opts ...client.CallOption) (*GetMovieResponse, error) {
+	req := c.c.NewRequest(c.name, "MovieService.GetMovie", in)
+	out := new(GetMovieResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for MovieService service
 
 type MovieServiceHandler interface {
 	CreateMovie(context.Context, *CreateMovieMessage, *CreateMovieResponse) error
 	DeleteMovie(context.Context, *DeleteMovieMessage, *DeleteMovieResponse) error
+	GetMovie(context.Context, *GetMovieMessage, *GetMovieResponse) error
 }
 
 func RegisterMovieServiceHandler(s server.Server, hdlr MovieServiceHandler, opts ...server.HandlerOption) error {
 	type movieService interface {
 		CreateMovie(ctx context.Context, in *CreateMovieMessage, out *CreateMovieResponse) error
 		DeleteMovie(ctx context.Context, in *DeleteMovieMessage, out *DeleteMovieResponse) error
+		GetMovie(ctx context.Context, in *GetMovieMessage, out *GetMovieResponse) error
 	}
 	type MovieService struct {
 		movieService
@@ -105,4 +118,8 @@ func (h *movieServiceHandler) CreateMovie(ctx context.Context, in *CreateMovieMe
 
 func (h *movieServiceHandler) DeleteMovie(ctx context.Context, in *DeleteMovieMessage, out *DeleteMovieResponse) error {
 	return h.MovieServiceHandler.DeleteMovie(ctx, in, out)
+}
+
+func (h *movieServiceHandler) GetMovie(ctx context.Context, in *GetMovieMessage, out *GetMovieResponse) error {
+	return h.MovieServiceHandler.GetMovie(ctx, in, out)
 }

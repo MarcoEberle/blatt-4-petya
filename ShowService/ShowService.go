@@ -3,6 +3,7 @@ package ShowService
 import (
 	"context"
 	"fmt"
+	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/messages"
 	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/messages"
 	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/messages"
 	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/messages"
@@ -31,6 +32,7 @@ type ShowMicroService struct {
 	mu             *sync.RWMutex
 	HallService    func() HallService.HallService
 	MovieService   func() MovieService.MovieService
+	BookingService func() BookingService.BookingService
 }
 
 func Spawn() *ShowMicroService {
@@ -41,8 +43,40 @@ func Spawn() *ShowMicroService {
 	}
 }
 
+func (shsrv ShowMicroService) SetMovieService(msrv func() MovieService.MovieService) {
+	shsrv.mu.Lock()
+	shsrv.MovieService = msrv
+	shsrv.mu.Unlock()
+}
+
+func (shsrv ShowMicroService) SetHallService(hsrv func() HallService.HallService) {
+	shsrv.mu.Lock()
+	shsrv.HallService = hsrv
+	shsrv.mu.Unlock()
+}
+
 func (shsrv ShowMicroService) CreateShow(context context.Context, req *ShowService.CreateShowMessage, res *ShowService.CreateShowResponse) error {
 	shsrv.mu.Lock()
+	m := shsrv.MovieService()
+	mmes := &MovieService.GetMovieMessage{
+		MovieID: req.MovieID,
+	}
+	_, merr := m.GetMovie(context, mmes)
+	if merr != nil {
+		shsrv.mu.Unlock()
+		return fmt.Errorf("The movie does not exist.")
+	}
+
+	h := shsrv.HallService()
+	hmes := &HallService.GetHallMessage{
+		HallID: req.HallID,
+	}
+	_, herr := h.GetHall(context, hmes)
+	if herr != nil {
+		shsrv.mu.Unlock()
+		return fmt.Errorf("The hall does not exist.")
+	}
+
 	shsrv.ShowRepository[shsrv.NextID] = &Show{
 		hallID:         req.HallID,
 		movieID:        req.MovieID,
@@ -140,6 +174,48 @@ func (shsrv ShowMicroService) FreeSeats(context context.Context, req *ShowServic
 	for index, ele := range shsrv.ShowRepository[req.ShowID].SeatRepository {
 		if ele.bookingID == req.BookingID {
 			delete(shsrv.ShowRepository[req.ShowID].SeatRepository, index)
+		}
+	}
+
+	res.Success = true
+	shsrv.mu.Unlock()
+	return nil
+}
+
+func (shsrv ShowMicroService) KillShowsHall(context context.Context, req *ShowService.KillShowsHallMessage, res *ShowService.KillShowsHallResponse) error {
+	shsrv.mu.Lock()
+	res.Success = false
+
+	b := shsrv.BookingService()
+
+	for index, ele := range shsrv.ShowRepository {
+		if ele.hallID == req.HallID {
+			message := &BookingService.KillBookingsMessage{
+				ShowID: index,
+			}
+
+			b.KillBookings(context, message)
+		}
+	}
+
+	res.Success = true
+	shsrv.mu.Unlock()
+	return nil
+}
+
+func (shsrv ShowMicroService) KillShowsMovie(context context.Context, req *ShowService.KillShowsMovieMessage, res *ShowService.KillShowsMovieResponse) error {
+	shsrv.mu.Lock()
+	res.Success = false
+
+	b := shsrv.BookingService()
+
+	for index, ele := range shsrv.ShowRepository {
+		if ele.movieID == req.MovieID {
+			message := &BookingService.KillBookingsMessage{
+				ShowID: index,
+			}
+
+			b.KillBookings(context, message)
 		}
 	}
 
