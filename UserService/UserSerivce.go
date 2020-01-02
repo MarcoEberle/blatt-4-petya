@@ -3,6 +3,7 @@ package UserService
 import (
 	"context"
 	"fmt"
+	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/messages"
 	UserService "github.com/ob-vss-ws19/blatt-4-petya/UserService/messages"
 	"sync"
 )
@@ -13,7 +14,7 @@ type User struct {
 
 type UserMicroService struct {
 	userRepository map[int32]*User
-	ResService     func() resproto.BookingService
+	BookingService func() BookingService.BookingService
 	mu             *sync.RWMutex
 	NextUserID     int32
 }
@@ -21,7 +22,7 @@ type UserMicroService struct {
 func Spawn() *UserMicroService {
 	return &UserMicroService{
 		userRepository: make(map[int32]*User),
-		ResService:     nil,
+		BookingService: nil,
 		mu:             &sync.RWMutex{},
 		NextUserID:     1,
 	}
@@ -71,4 +72,8 @@ func (usrv UserMicroService) GetUser(context context.Context, req *UserService.G
 
 func HasBookings(userId int32) bool {
 
+}
+
+func (usrv UserMicroService) SetBookingService(bksrv func() BookingService.BookingService) {
+	usrv.BookingService = bksrv
 }

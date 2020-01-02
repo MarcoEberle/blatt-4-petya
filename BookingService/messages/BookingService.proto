@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+service BookingService {
+    rpc PrepareBooking(PrepareBookingMessage) returns (PrepareBookingResponse) {}
+    rpc CreateBooking(CreateBookingMessage) returns (CreateBookingResponse) {}
+    rpc DeleteBooking(DeleteBookingMessage) returns (DeleteBookingResponse) {}
+    rpc GetUserBookings(GetUserBookingsMessage) returns (GetUserBookingsResponse) {}
+    rpc GetBooking(GetBookingMessage) returns (GetBookingResponse) {}
+}
+
+message PrepareBookingMessage {
+    int32 userID = 1;
+    int32 showID = 2;
+    repeated int32 seats = 3;
+}
+
+message PrepareBookingResponse {
+    int32 bookingID = 1;
+}
+
+message CreateBookingMessage {
+    int32 userID = 1;
+    int32 showID = 2;
+    repeated int32 seats = 3;
+}
+
+message CreateBookingResponse {
+    int32 bookingID = 1;
+}
+
+message DeleteBookingMessage {
+    int32 bookingID = 1;
+}
+
+message DeleteBookingResponse {
+    bool success = 1;
+}
+
+message GetUserBookingsMessage {
+    int32 userID = 1;
+}
+
+message GetUserBookingsResponse {
+    int32 userID = 1;
+    repeated int32 bookingID = 2;
+}
+
+message GetBookingMessage {
+    int32 bookingID = 1;
+}
+
+message GetBookingResponse {
+    int32 userID = 1;
+    int32 showID = 2;
+    repeated int32 seats = 3;
+    repeated int32 bookingID = 4;
+}

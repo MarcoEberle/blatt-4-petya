@@ -12,5 +12,4 @@ require (
 	golang.org/x/sys v0.0.0-20191228213918-04cbcbbfeed8 // indirect
 	golang.org/x/tools v0.0.0-20191227053925-7b8e75db28f4 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
-	google.golang.org/grpc v1.25.1
 )
