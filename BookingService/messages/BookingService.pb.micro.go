@@ -34,7 +34,6 @@ var _ server.Option
 // Client API for BookingService service
 
 type BookingService interface {
-	PrepareBooking(ctx context.Context, in *PrepareBookingMessage, opts ...client.CallOption) (*PrepareBookingResponse, error)
 	CreateBooking(ctx context.Context, in *CreateBookingMessage, opts ...client.CallOption) (*CreateBookingResponse, error)
 	ConfirmBooking(ctx context.Context, in *ConfirmBookingMessage, opts ...client.CallOption) (*ConfirmBookingResponse, error)
 	DeleteBooking(ctx context.Context, in *DeleteBookingMessage, opts ...client.CallOption) (*DeleteBookingResponse, error)
@@ -58,16 +57,6 @@ func NewBookingService(name string, c client.Client) BookingService {
 		c:    c,
 		name: name,
 	}
-}
-
-func (c *bookingService) PrepareBooking(ctx context.Context, in *PrepareBookingMessage, opts ...client.CallOption) (*PrepareBookingResponse, error) {
-	req := c.c.NewRequest(c.name, "BookingService.PrepareBooking", in)
-	out := new(PrepareBookingResponse)
-	err := c.c.Call(ctx, req, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *bookingService) CreateBooking(ctx context.Context, in *CreateBookingMessage, opts ...client.CallOption) (*CreateBookingResponse, error) {
@@ -123,7 +112,6 @@ func (c *bookingService) GetBooking(ctx context.Context, in *GetBookingMessage, 
 // Server API for BookingService service
 
 type BookingServiceHandler interface {
-	PrepareBooking(context.Context, *PrepareBookingMessage, *PrepareBookingResponse) error
 	CreateBooking(context.Context, *CreateBookingMessage, *CreateBookingResponse) error
 	ConfirmBooking(context.Context, *ConfirmBookingMessage, *ConfirmBookingResponse) error
 	DeleteBooking(context.Context, *DeleteBookingMessage, *DeleteBookingResponse) error
@@ -133,7 +121,6 @@ type BookingServiceHandler interface {
 
 func RegisterBookingServiceHandler(s server.Server, hdlr BookingServiceHandler, opts ...server.HandlerOption) error {
 	type bookingService interface {
-		PrepareBooking(ctx context.Context, in *PrepareBookingMessage, out *PrepareBookingResponse) error
 		CreateBooking(ctx context.Context, in *CreateBookingMessage, out *CreateBookingResponse) error
 		ConfirmBooking(ctx context.Context, in *ConfirmBookingMessage, out *ConfirmBookingResponse) error
 		DeleteBooking(ctx context.Context, in *DeleteBookingMessage, out *DeleteBookingResponse) error
@@ -149,10 +136,6 @@ func RegisterBookingServiceHandler(s server.Server, hdlr BookingServiceHandler, 
 
 type bookingServiceHandler struct {
 	BookingServiceHandler
-}
-
-func (h *bookingServiceHandler) PrepareBooking(ctx context.Context, in *PrepareBookingMessage, out *PrepareBookingResponse) error {
-	return h.BookingServiceHandler.PrepareBooking(ctx, in, out)
 }
 
 func (h *bookingServiceHandler) CreateBooking(ctx context.Context, in *CreateBookingMessage, out *CreateBookingResponse) error {

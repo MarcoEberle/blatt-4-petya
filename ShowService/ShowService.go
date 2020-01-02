@@ -59,19 +59,23 @@ func (shsrv ShowMicroService) DeleteShow(context context.Context, req *ShowServi
 	if hall {
 		delete(shsrv.ShowRepository, req.ShowID)
 		res.Success = true
+		shsrv.mu.Unlock()
 		return nil
 	}
 
+	shsrv.mu.Unlock()
 	return fmt.Errorf("The show could not be deleted.")
 }
 
 func (shsrv ShowMicroService) BlockSeats(context context.Context, req *ShowService.BlockSeatMessage, res *ShowService.BlockSeatResponse) error {
+	shsrv.mu.Lock()
 	res.Success = false
 	res.BookingID = req.BookingID
 
 	// Show exists
 	_, exists := shsrv.ShowRepository[req.ShowID]
 	if !exists {
+		shsrv.mu.Unlock()
 		return fmt.Errorf("The show could not be found.")
 	}
 
@@ -93,6 +97,7 @@ func (shsrv ShowMicroService) BlockSeats(context context.Context, req *ShowServi
 	for _, ele := range req.SeatID {
 		_, alreadyTaken := shsrv.ShowRepository[req.ShowID].SeatRepository[ele]
 		if alreadyTaken {
+			shsrv.mu.Unlock()
 			return fmt.Errorf("The seats are not available.")
 		}
 	}
@@ -104,11 +109,12 @@ func (shsrv ShowMicroService) BlockSeats(context context.Context, req *ShowServi
 			bookingID: req.BookingID,
 		}
 	}
-
+	shsrv.mu.Unlock()
 	return nil
 }
 
 func (shsrv ShowMicroService) LockSeats(context context.Context, req *ShowService.LockSeatMessage, res *ShowService.LockSeatResponse) error {
+	shsrv.mu.Lock()
 	res.Success = false
 	res.BookingID = req.BookingID
 
@@ -120,13 +126,15 @@ func (shsrv ShowMicroService) LockSeats(context context.Context, req *ShowServic
 	}
 
 	if !res.Success {
+		shsrv.mu.Unlock()
 		return fmt.Errorf("There are no blocked seats!")
 	}
-
+	shsrv.mu.Unlock()
 	return nil
 }
 
 func (shsrv ShowMicroService) FreeSeats(context context.Context, req *ShowService.FreeSeatMessage, res *ShowService.FreeSeatResponse) error {
+	shsrv.mu.Lock()
 	res.Success = false
 
 	for index, ele := range shsrv.ShowRepository[req.ShowID].SeatRepository {
@@ -136,5 +144,6 @@ func (shsrv ShowMicroService) FreeSeats(context context.Context, req *ShowServic
 	}
 
 	res.Success = true
+	shsrv.mu.Unlock()
 	return nil
 }
