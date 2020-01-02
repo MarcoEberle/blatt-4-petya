@@ -38,6 +38,7 @@ type ShowService interface {
 	DeleteShow(ctx context.Context, in *DeleteShowMessage, opts ...client.CallOption) (*DeleteShowResponse, error)
 	BlockSeats(ctx context.Context, in *BlockSeatMessage, opts ...client.CallOption) (*BlockSeatResponse, error)
 	LockSeats(ctx context.Context, in *LockSeatMessage, opts ...client.CallOption) (*LockSeatResponse, error)
+	FreeSeats(ctx context.Context, in *FreeSeatMessage, opts ...client.CallOption) (*FreeSeatResponse, error)
 	VerifySeat(ctx context.Context, in *VerifySeatMessage, opts ...client.CallOption) (*VerifySeatResponse, error)
 }
 
@@ -99,6 +100,16 @@ func (c *showService) LockSeats(ctx context.Context, in *LockSeatMessage, opts .
 	return out, nil
 }
 
+func (c *showService) FreeSeats(ctx context.Context, in *FreeSeatMessage, opts ...client.CallOption) (*FreeSeatResponse, error) {
+	req := c.c.NewRequest(c.name, "ShowService.FreeSeats", in)
+	out := new(FreeSeatResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *showService) VerifySeat(ctx context.Context, in *VerifySeatMessage, opts ...client.CallOption) (*VerifySeatResponse, error) {
 	req := c.c.NewRequest(c.name, "ShowService.VerifySeat", in)
 	out := new(VerifySeatResponse)
@@ -116,6 +127,7 @@ type ShowServiceHandler interface {
 	DeleteShow(context.Context, *DeleteShowMessage, *DeleteShowResponse) error
 	BlockSeats(context.Context, *BlockSeatMessage, *BlockSeatResponse) error
 	LockSeats(context.Context, *LockSeatMessage, *LockSeatResponse) error
+	FreeSeats(context.Context, *FreeSeatMessage, *FreeSeatResponse) error
 	VerifySeat(context.Context, *VerifySeatMessage, *VerifySeatResponse) error
 }
 
@@ -125,6 +137,7 @@ func RegisterShowServiceHandler(s server.Server, hdlr ShowServiceHandler, opts .
 		DeleteShow(ctx context.Context, in *DeleteShowMessage, out *DeleteShowResponse) error
 		BlockSeats(ctx context.Context, in *BlockSeatMessage, out *BlockSeatResponse) error
 		LockSeats(ctx context.Context, in *LockSeatMessage, out *LockSeatResponse) error
+		FreeSeats(ctx context.Context, in *FreeSeatMessage, out *FreeSeatResponse) error
 		VerifySeat(ctx context.Context, in *VerifySeatMessage, out *VerifySeatResponse) error
 	}
 	type ShowService struct {
@@ -152,6 +165,10 @@ func (h *showServiceHandler) BlockSeats(ctx context.Context, in *BlockSeatMessag
 
 func (h *showServiceHandler) LockSeats(ctx context.Context, in *LockSeatMessage, out *LockSeatResponse) error {
 	return h.ShowServiceHandler.LockSeats(ctx, in, out)
+}
+
+func (h *showServiceHandler) FreeSeats(ctx context.Context, in *FreeSeatMessage, out *FreeSeatResponse) error {
+	return h.ShowServiceHandler.FreeSeats(ctx, in, out)
 }
 
 func (h *showServiceHandler) VerifySeat(ctx context.Context, in *VerifySeatMessage, out *VerifySeatResponse) error {

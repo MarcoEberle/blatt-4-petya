@@ -17,6 +17,7 @@ type HallMicroService struct {
 	HallRepository map[int32]*Hall
 	NextID         int32
 	mu             *sync.RWMutex
+	ShowService    func() ShowSerivce.ShowService
 }
 
 func Spawn() *HallMicroService {
@@ -79,4 +80,8 @@ func (hsrv HallMicroService) VerifySeat(context context.Context, req *HallServic
 	}
 
 	return fmt.Errorf("The hall could not be found.")
+}
+
+func (usrv HallMicroService) SetBookingService(shsrv func() ShowSerivce.ShowSerivce) {
+	usrv.ShowService = shsrv
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/gogo/protobuf/types"
 	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/messages"
+	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/messages"
+	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/messages"
 	"sync"
 )
 

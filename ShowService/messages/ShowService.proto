@@ -5,6 +5,7 @@ service ShowService {
     rpc DeleteShow(DeleteShowMessage) returns (DeleteShowResponse) {}
     rpc BlockSeats(BlockSeatMessage) returns (BlockSeatResponse) {}
     rpc LockSeats(LockSeatMessage) returns (LockSeatResponse) {}
+    rpc FreeSeats(FreeSeatMessage) returns (FreeSeatResponse) {}
     rpc VerifySeat(VerifySeatMessage) returns (VerifySeatResponse) {}
 }
 
@@ -44,6 +45,15 @@ message LockSeatMessage {
 message LockSeatResponse {
     bool success = 1;
     int32 bookingID = 2;
+}
+
+message FreeSeatMessage {
+    int32 showID = 1;
+    int32 bookingID = 2;
+}
+
+message FreeSeatResponse {
+    bool success = 1;
 }
 
 message VerifySeatMessage {
