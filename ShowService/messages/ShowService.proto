@@ -14,11 +14,11 @@ message CreateShowMessage {
 }
 
 message CreateShowResponse {
-    int32 ShowID = 1;
+    int32 showID = 1;
 }
 
 message DeleteShowMessage {
-    int32 ShowID = 1;
+    int32 showID = 1;
 }
 
 message DeleteShowResponse {

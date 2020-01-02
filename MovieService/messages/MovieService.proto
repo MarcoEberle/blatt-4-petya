@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+service MovieService {
+    rpc CreateMovie(CreateMovieMessage) returns (CreateMovieResponse) {}
+    rpc DeleteMovie(DeleteMovieMessage) returns (DeleteMovieResponse) {}
+}
+
+message CreateMovieMessage {
+    string title = 1;
+}
+
+message CreateMovieResponse {
+    int32 MovieID = 1;
+}
+
+message DeleteMovieMessage {
+    int32 MovieID = 1;
+}
+
+message DeleteMovieResponse {
+    bool success = 1;
+}
