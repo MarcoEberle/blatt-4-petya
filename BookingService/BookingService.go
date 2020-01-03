@@ -184,11 +184,24 @@ func (bksrv *BookingMicroService) GetBooking(context context.Context, req *Booki
 	return fmt.Errorf("The booking does not exist.")
 }
 
-func (bksrv *BookingMicroService) KillBookings(context context.Context, req *BookingService.KillBookingsMessage, res *BookingService.KillBookingsResponse) error {
+func (bksrv *BookingMicroService) KillBookingsShow(context context.Context, req *BookingService.KillBookingsShowMessage, res *BookingService.KillBookingsShowResponse) error {
 	bksrv.mu.Lock()
 
 	for index, ele := range bksrv.bookingRepository {
 		if ele.ShowID == req.ShowID {
+			bksrv.DeleteElement(context, index)
+		}
+	}
+
+	bksrv.mu.Unlock()
+	return nil
+}
+
+func (bksrv *BookingMicroService) KillBookingsUser(context context.Context, req *BookingService.KillBookingsUserMessage, res *BookingService.KillBookingsUserResponse) error {
+	bksrv.mu.Lock()
+
+	for index, ele := range bksrv.bookingRepository {
+		if ele.UserID == req.UserID {
 			bksrv.DeleteElement(context, index)
 		}
 	}

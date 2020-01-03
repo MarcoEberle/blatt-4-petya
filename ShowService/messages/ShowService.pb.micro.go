@@ -42,6 +42,8 @@ type ShowService interface {
 	VerifySeat(ctx context.Context, in *VerifySeatMessage, opts ...client.CallOption) (*VerifySeatResponse, error)
 	KillShowsHall(ctx context.Context, in *KillShowsHallMessage, opts ...client.CallOption) (*KillShowsHallResponse, error)
 	KillShowsMovie(ctx context.Context, in *KillShowsMovieMessage, opts ...client.CallOption) (*KillShowsMovieResponse, error)
+	GetShows(ctx context.Context, in *GetShowsMessage, opts ...client.CallOption) (*GetShowsResponse, error)
+	GetShow(ctx context.Context, in *GetShowMessage, opts ...client.CallOption) (*GetShowResponse, error)
 }
 
 type showService struct {
@@ -142,6 +144,26 @@ func (c *showService) KillShowsMovie(ctx context.Context, in *KillShowsMovieMess
 	return out, nil
 }
 
+func (c *showService) GetShows(ctx context.Context, in *GetShowsMessage, opts ...client.CallOption) (*GetShowsResponse, error) {
+	req := c.c.NewRequest(c.name, "ShowService.GetShows", in)
+	out := new(GetShowsResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *showService) GetShow(ctx context.Context, in *GetShowMessage, opts ...client.CallOption) (*GetShowResponse, error) {
+	req := c.c.NewRequest(c.name, "ShowService.GetShow", in)
+	out := new(GetShowResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for ShowService service
 
 type ShowServiceHandler interface {
@@ -153,6 +175,8 @@ type ShowServiceHandler interface {
 	VerifySeat(context.Context, *VerifySeatMessage, *VerifySeatResponse) error
 	KillShowsHall(context.Context, *KillShowsHallMessage, *KillShowsHallResponse) error
 	KillShowsMovie(context.Context, *KillShowsMovieMessage, *KillShowsMovieResponse) error
+	GetShows(context.Context, *GetShowsMessage, *GetShowsResponse) error
+	GetShow(context.Context, *GetShowMessage, *GetShowResponse) error
 }
 
 func RegisterShowServiceHandler(s server.Server, hdlr ShowServiceHandler, opts ...server.HandlerOption) error {
@@ -165,6 +189,8 @@ func RegisterShowServiceHandler(s server.Server, hdlr ShowServiceHandler, opts .
 		VerifySeat(ctx context.Context, in *VerifySeatMessage, out *VerifySeatResponse) error
 		KillShowsHall(ctx context.Context, in *KillShowsHallMessage, out *KillShowsHallResponse) error
 		KillShowsMovie(ctx context.Context, in *KillShowsMovieMessage, out *KillShowsMovieResponse) error
+		GetShows(ctx context.Context, in *GetShowsMessage, out *GetShowsResponse) error
+		GetShow(ctx context.Context, in *GetShowMessage, out *GetShowResponse) error
 	}
 	type ShowService struct {
 		showService
@@ -207,4 +233,12 @@ func (h *showServiceHandler) KillShowsHall(ctx context.Context, in *KillShowsHal
 
 func (h *showServiceHandler) KillShowsMovie(ctx context.Context, in *KillShowsMovieMessage, out *KillShowsMovieResponse) error {
 	return h.ShowServiceHandler.KillShowsMovie(ctx, in, out)
+}
+
+func (h *showServiceHandler) GetShows(ctx context.Context, in *GetShowsMessage, out *GetShowsResponse) error {
+	return h.ShowServiceHandler.GetShows(ctx, in, out)
+}
+
+func (h *showServiceHandler) GetShow(ctx context.Context, in *GetShowMessage, out *GetShowResponse) error {
+	return h.ShowServiceHandler.GetShow(ctx, in, out)
 }

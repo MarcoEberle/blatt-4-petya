@@ -49,13 +49,23 @@ func (usrv UserMicroService) DeleteUser(context context.Context, req *UserServic
 		return fmt.Errorf("The user could not be deleted.")
 	}
 
-	if HasBookings(req.UserID) {
-		usrv.mu.Lock()
-		delete(usrv.userRepository, req.UserID)
-		res.Success = true
-		usrv.mu.Unlock()
+	b := usrv.BookingService()
+
+	message := &BookingService.GetUserBookingsMessage{
+		UserID: req.UserID,
 	}
 
+	ele, _ := b.GetUserBookings(context, message)
+	if len(ele.BookingID) != 0 {
+		deleteMessage := &BookingService.KillBookingsUserMessage{
+			UserID: req.UserID,
+		}
+		b.KillBookingsUser(context, deleteMessage)
+	}
+
+	delete(usrv.userRepository, req.UserID)
+	res.Success = true
+	usrv.mu.Unlock()
 	return nil
 }
 
@@ -68,10 +78,6 @@ func (usrv UserMicroService) GetUser(context context.Context, req *UserService.G
 	}
 
 	return fmt.Errorf("The user could not be deleted.")
-}
-
-func HasBookings(userId int32) bool {
-
 }
 
 func (usrv UserMicroService) SetBookingService(bksrv func() BookingService.BookingService) {

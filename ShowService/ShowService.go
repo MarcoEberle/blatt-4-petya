@@ -91,6 +91,13 @@ func (shsrv ShowMicroService) DeleteShow(context context.Context, req *ShowServi
 	res.Success = false
 	_, hall := shsrv.ShowRepository[req.ShowID]
 	if hall {
+		bksrv := shsrv.BookingService()
+		mes := &BookingService.KillBookingsShowMessage{
+			ShowID: req.ShowID,
+		}
+
+		bksrv.KillBookingsShow(context, mes)
+
 		delete(shsrv.ShowRepository, req.ShowID)
 		res.Success = true
 		shsrv.mu.Unlock()
@@ -190,11 +197,11 @@ func (shsrv ShowMicroService) KillShowsHall(context context.Context, req *ShowSe
 
 	for index, ele := range shsrv.ShowRepository {
 		if ele.hallID == req.HallID {
-			message := &BookingService.KillBookingsMessage{
+			message := &BookingService.KillBookingsShowMessage{
 				ShowID: index,
 			}
 
-			b.KillBookings(context, message)
+			b.KillBookingsShow(context, message)
 		}
 	}
 
@@ -211,15 +218,53 @@ func (shsrv ShowMicroService) KillShowsMovie(context context.Context, req *ShowS
 
 	for index, ele := range shsrv.ShowRepository {
 		if ele.movieID == req.MovieID {
-			message := &BookingService.KillBookingsMessage{
+			message := &BookingService.KillBookingsShowMessage{
 				ShowID: index,
 			}
 
-			b.KillBookings(context, message)
+			b.KillBookingsShow(context, message)
 		}
 	}
 
 	res.Success = true
+	shsrv.mu.Unlock()
+	return nil
+}
+
+func (shsrv ShowMicroService) GetShows(context context.Context, req *ShowService.GetShowsMessage, res *ShowService.GetShowsResponse) error {
+	shsrv.mu.Lock()
+	shows := []*ShowService.Show{}
+
+	for index, ele := range shsrv.ShowRepository {
+		shows = append(shows, &ShowService.Show{
+			MovieID: ele.movieID,
+			HallID:  ele.hallID,
+			ShowID:  index,
+		})
+	}
+
+	res.Shows = shows
+
+	shsrv.mu.Unlock()
+	return nil
+}
+
+func (shsrv ShowMicroService) GetShow(context context.Context, req *ShowService.GetShowMessage, res *ShowService.GetShowResponse) error {
+	shsrv.mu.Lock()
+
+	ele, ok := shsrv.ShowRepository[req.ShowID]
+
+	if !ok {
+		shsrv.mu.Unlock()
+		return fmt.Errorf("The show was not found.")
+	}
+
+	res.Show = &ShowService.Show{
+		MovieID: ele.movieID,
+		HallID:  ele.hallID,
+		ShowID:  req.ShowID,
+	}
+
 	shsrv.mu.Unlock()
 	return nil
 }

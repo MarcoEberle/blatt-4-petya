@@ -9,6 +9,28 @@ service ShowService {
     rpc VerifySeat(VerifySeatMessage) returns (VerifySeatResponse) {}
     rpc KillShowsHall(KillShowsHallMessage) returns (KillShowsHallResponse) {}
     rpc KillShowsMovie(KillShowsMovieMessage) returns (KillShowsMovieResponse) {}
+    rpc GetShows(GetShowsMessage) returns (GetShowsResponse) {}
+    rpc GetShow(GetShowMessage) returns (GetShowResponse) {}
+}
+
+message Show {
+    int32 movieID = 1;
+    int32 hallID = 2;
+    int32 showID = 3;
+}
+
+message GetShowMessage {
+    int32 showID = 1;
+}
+
+message GetShowResponse {
+    Show show = 1;
+}
+
+message GetShowsMessage {}
+
+message GetShowsResponse {
+    repeated Show shows = 1;
 }
 
 message KillShowsMovieMessage {

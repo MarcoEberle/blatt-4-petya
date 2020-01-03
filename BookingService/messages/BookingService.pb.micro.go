@@ -39,7 +39,8 @@ type BookingService interface {
 	DeleteBooking(ctx context.Context, in *DeleteBookingMessage, opts ...client.CallOption) (*DeleteBookingResponse, error)
 	GetUserBookings(ctx context.Context, in *GetUserBookingsMessage, opts ...client.CallOption) (*GetUserBookingsResponse, error)
 	GetBooking(ctx context.Context, in *GetBookingMessage, opts ...client.CallOption) (*GetBookingResponse, error)
-	KillBookings(ctx context.Context, in *KillBookingsMessage, opts ...client.CallOption) (*KillBookingsResponse, error)
+	KillBookingsUser(ctx context.Context, in *KillBookingsUserMessage, opts ...client.CallOption) (*KillBookingsUserResponse, error)
+	KillBookingsShow(ctx context.Context, in *KillBookingsShowMessage, opts ...client.CallOption) (*KillBookingsShowResponse, error)
 }
 
 type bookingService struct {
@@ -110,9 +111,19 @@ func (c *bookingService) GetBooking(ctx context.Context, in *GetBookingMessage, 
 	return out, nil
 }
 
-func (c *bookingService) KillBookings(ctx context.Context, in *KillBookingsMessage, opts ...client.CallOption) (*KillBookingsResponse, error) {
-	req := c.c.NewRequest(c.name, "BookingService.KillBookings", in)
-	out := new(KillBookingsResponse)
+func (c *bookingService) KillBookingsUser(ctx context.Context, in *KillBookingsUserMessage, opts ...client.CallOption) (*KillBookingsUserResponse, error) {
+	req := c.c.NewRequest(c.name, "BookingService.KillBookingsUser", in)
+	out := new(KillBookingsUserResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bookingService) KillBookingsShow(ctx context.Context, in *KillBookingsShowMessage, opts ...client.CallOption) (*KillBookingsShowResponse, error) {
+	req := c.c.NewRequest(c.name, "BookingService.KillBookingsShow", in)
+	out := new(KillBookingsShowResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -128,7 +139,8 @@ type BookingServiceHandler interface {
 	DeleteBooking(context.Context, *DeleteBookingMessage, *DeleteBookingResponse) error
 	GetUserBookings(context.Context, *GetUserBookingsMessage, *GetUserBookingsResponse) error
 	GetBooking(context.Context, *GetBookingMessage, *GetBookingResponse) error
-	KillBookings(context.Context, *KillBookingsMessage, *KillBookingsResponse) error
+	KillBookingsUser(context.Context, *KillBookingsUserMessage, *KillBookingsUserResponse) error
+	KillBookingsShow(context.Context, *KillBookingsShowMessage, *KillBookingsShowResponse) error
 }
 
 func RegisterBookingServiceHandler(s server.Server, hdlr BookingServiceHandler, opts ...server.HandlerOption) error {
@@ -138,7 +150,8 @@ func RegisterBookingServiceHandler(s server.Server, hdlr BookingServiceHandler, 
 		DeleteBooking(ctx context.Context, in *DeleteBookingMessage, out *DeleteBookingResponse) error
 		GetUserBookings(ctx context.Context, in *GetUserBookingsMessage, out *GetUserBookingsResponse) error
 		GetBooking(ctx context.Context, in *GetBookingMessage, out *GetBookingResponse) error
-		KillBookings(ctx context.Context, in *KillBookingsMessage, out *KillBookingsResponse) error
+		KillBookingsUser(ctx context.Context, in *KillBookingsUserMessage, out *KillBookingsUserResponse) error
+		KillBookingsShow(ctx context.Context, in *KillBookingsShowMessage, out *KillBookingsShowResponse) error
 	}
 	type BookingService struct {
 		bookingService
@@ -171,6 +184,10 @@ func (h *bookingServiceHandler) GetBooking(ctx context.Context, in *GetBookingMe
 	return h.BookingServiceHandler.GetBooking(ctx, in, out)
 }
 
-func (h *bookingServiceHandler) KillBookings(ctx context.Context, in *KillBookingsMessage, out *KillBookingsResponse) error {
-	return h.BookingServiceHandler.KillBookings(ctx, in, out)
+func (h *bookingServiceHandler) KillBookingsUser(ctx context.Context, in *KillBookingsUserMessage, out *KillBookingsUserResponse) error {
+	return h.BookingServiceHandler.KillBookingsUser(ctx, in, out)
+}
+
+func (h *bookingServiceHandler) KillBookingsShow(ctx context.Context, in *KillBookingsShowMessage, out *KillBookingsShowResponse) error {
+	return h.BookingServiceHandler.KillBookingsShow(ctx, in, out)
 }
