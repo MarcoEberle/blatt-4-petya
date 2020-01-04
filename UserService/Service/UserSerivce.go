@@ -1,10 +1,10 @@
-package UserService
+package Service
 
 import (
 	"context"
 	"fmt"
-	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/messages"
-	UserService "github.com/ob-vss-ws19/blatt-4-petya/UserService/messages"
+	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/Service/messages"
+	UserService "github.com/ob-vss-ws19/blatt-4-petya/UserService/Service/messages"
 	"sync"
 )
 

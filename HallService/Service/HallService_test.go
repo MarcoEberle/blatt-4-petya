@@ -1,9 +1,9 @@
-package HallService
+package Service
 
 import (
 	"context"
 	"fmt"
-	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/messages"
+	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/Service/messages"
 	"testing"
 )
 

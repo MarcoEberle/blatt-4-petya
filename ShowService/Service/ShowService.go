@@ -1,12 +1,12 @@
-package ShowService
+package Service
 
 import (
 	"context"
 	"fmt"
-	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/messages"
-	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/messages"
-	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/messages"
-	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/messages"
+	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/Service/messages"
+	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/Service/messages"
+	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/Service/messages"
+	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	"sync"
 )
 
@@ -52,6 +52,12 @@ func (shsrv ShowMicroService) SetMovieService(msrv func() MovieService.MovieServ
 func (shsrv ShowMicroService) SetHallService(hsrv func() HallService.HallService) {
 	shsrv.mu.Lock()
 	shsrv.HallService = hsrv
+	shsrv.mu.Unlock()
+}
+
+func (shsrv ShowMicroService) SetBookingService(bsrv func() BookingService.BookingService) {
+	shsrv.mu.Lock()
+	shsrv.BookingService = bsrv
 	shsrv.mu.Unlock()
 }
 

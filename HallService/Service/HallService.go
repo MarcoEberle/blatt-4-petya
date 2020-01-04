@@ -1,10 +1,10 @@
-package HallService
+package Service
 
 import (
 	"context"
 	"fmt"
-	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/messages"
-	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/messages"
+	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/Service/messages"
+	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	"sync"
 )
 
@@ -111,5 +111,11 @@ func (hsrv HallMicroService) VerifySeat(context context.Context, req *HallServic
 func (usrv HallMicroService) SetBookingService(shsrv func() ShowService.ShowService) {
 	usrv.mu.Lock()
 	usrv.ShowService = shsrv
+	usrv.mu.Unlock()
+}
+
+func (usrv HallMicroService) SetShowService(ssrv func() ShowService.ShowService) {
+	usrv.mu.Lock()
+	usrv.ShowService = ssrv
 	usrv.mu.Unlock()
 }

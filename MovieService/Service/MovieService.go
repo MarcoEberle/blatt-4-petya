@@ -1,10 +1,10 @@
-package MovieService
+package Service
 
 import (
 	"context"
 	"fmt"
-	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/messages"
-	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/messages"
+	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/Service/messages"
+	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	"sync"
 )
 
@@ -66,4 +66,10 @@ func (msrv MovieMicroService) GetMovie(context context.Context, req *MovieServic
 	}
 
 	return fmt.Errorf("The movie could not be found.")
+}
+
+func (msrv MovieMicroService) SetShowService(ssrv func() ShowService.ShowService) {
+	msrv.mu.Lock()
+	msrv.ShowService = ssrv
+	msrv.mu.Unlock()
 }

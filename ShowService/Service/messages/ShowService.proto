@@ -6,7 +6,6 @@ service ShowService {
     rpc BlockSeats(BlockSeatMessage) returns (BlockSeatResponse) {}
     rpc LockSeats(LockSeatMessage) returns (LockSeatResponse) {}
     rpc FreeSeats(FreeSeatMessage) returns (FreeSeatResponse) {}
-    rpc VerifySeat(VerifySeatMessage) returns (VerifySeatResponse) {}
     rpc KillShowsHall(KillShowsHallMessage) returns (KillShowsHallResponse) {}
     rpc KillShowsMovie(KillShowsMovieMessage) returns (KillShowsMovieResponse) {}
     rpc GetShows(GetShowsMessage) returns (GetShowsResponse) {}
@@ -95,13 +94,4 @@ message FreeSeatMessage {
 message FreeSeatResponse {
     bool success = 1;
 }
-
-message VerifySeatMessage {
-    repeated int32 seatID = 1;
-}
-
-message VerifySeatResponse {
-    bool success = 1;
-}
-
 

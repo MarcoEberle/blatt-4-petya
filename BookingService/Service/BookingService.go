@@ -1,11 +1,11 @@
-package BookingService
+package Service
 
 import (
 	"context"
 	"fmt"
-	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/messages"
-	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/messages"
-	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/messages"
+	BookingService "github.com/ob-vss-ws19/blatt-4-petya/BookingService/Service/messages"
+	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/Service/messages"
+	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	"sync"
 	"time"
 )
@@ -28,6 +28,14 @@ type BookingMicroService struct {
 	ShowService       func() ShowService.ShowService
 	NextId            int32
 	mu                *sync.RWMutex
+}
+
+func Spawn() *BookingMicroService {
+	return &BookingMicroService{
+		bookingRepository: make(map[int32]*Booking),
+		NextId:            1,
+		mu:                &sync.RWMutex{},
+	}
 }
 
 func (bksrv BookingMicroService) SetShowService(shsrv func() ShowService.ShowService) {

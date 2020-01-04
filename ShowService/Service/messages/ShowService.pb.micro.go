@@ -39,7 +39,6 @@ type ShowService interface {
 	BlockSeats(ctx context.Context, in *BlockSeatMessage, opts ...client.CallOption) (*BlockSeatResponse, error)
 	LockSeats(ctx context.Context, in *LockSeatMessage, opts ...client.CallOption) (*LockSeatResponse, error)
 	FreeSeats(ctx context.Context, in *FreeSeatMessage, opts ...client.CallOption) (*FreeSeatResponse, error)
-	VerifySeat(ctx context.Context, in *VerifySeatMessage, opts ...client.CallOption) (*VerifySeatResponse, error)
 	KillShowsHall(ctx context.Context, in *KillShowsHallMessage, opts ...client.CallOption) (*KillShowsHallResponse, error)
 	KillShowsMovie(ctx context.Context, in *KillShowsMovieMessage, opts ...client.CallOption) (*KillShowsMovieResponse, error)
 	GetShows(ctx context.Context, in *GetShowsMessage, opts ...client.CallOption) (*GetShowsResponse, error)
@@ -114,16 +113,6 @@ func (c *showService) FreeSeats(ctx context.Context, in *FreeSeatMessage, opts .
 	return out, nil
 }
 
-func (c *showService) VerifySeat(ctx context.Context, in *VerifySeatMessage, opts ...client.CallOption) (*VerifySeatResponse, error) {
-	req := c.c.NewRequest(c.name, "ShowService.VerifySeat", in)
-	out := new(VerifySeatResponse)
-	err := c.c.Call(ctx, req, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *showService) KillShowsHall(ctx context.Context, in *KillShowsHallMessage, opts ...client.CallOption) (*KillShowsHallResponse, error) {
 	req := c.c.NewRequest(c.name, "ShowService.KillShowsHall", in)
 	out := new(KillShowsHallResponse)
@@ -172,7 +161,6 @@ type ShowServiceHandler interface {
 	BlockSeats(context.Context, *BlockSeatMessage, *BlockSeatResponse) error
 	LockSeats(context.Context, *LockSeatMessage, *LockSeatResponse) error
 	FreeSeats(context.Context, *FreeSeatMessage, *FreeSeatResponse) error
-	VerifySeat(context.Context, *VerifySeatMessage, *VerifySeatResponse) error
 	KillShowsHall(context.Context, *KillShowsHallMessage, *KillShowsHallResponse) error
 	KillShowsMovie(context.Context, *KillShowsMovieMessage, *KillShowsMovieResponse) error
 	GetShows(context.Context, *GetShowsMessage, *GetShowsResponse) error
@@ -186,7 +174,6 @@ func RegisterShowServiceHandler(s server.Server, hdlr ShowServiceHandler, opts .
 		BlockSeats(ctx context.Context, in *BlockSeatMessage, out *BlockSeatResponse) error
 		LockSeats(ctx context.Context, in *LockSeatMessage, out *LockSeatResponse) error
 		FreeSeats(ctx context.Context, in *FreeSeatMessage, out *FreeSeatResponse) error
-		VerifySeat(ctx context.Context, in *VerifySeatMessage, out *VerifySeatResponse) error
 		KillShowsHall(ctx context.Context, in *KillShowsHallMessage, out *KillShowsHallResponse) error
 		KillShowsMovie(ctx context.Context, in *KillShowsMovieMessage, out *KillShowsMovieResponse) error
 		GetShows(ctx context.Context, in *GetShowsMessage, out *GetShowsResponse) error
@@ -221,10 +208,6 @@ func (h *showServiceHandler) LockSeats(ctx context.Context, in *LockSeatMessage,
 
 func (h *showServiceHandler) FreeSeats(ctx context.Context, in *FreeSeatMessage, out *FreeSeatResponse) error {
 	return h.ShowServiceHandler.FreeSeats(ctx, in, out)
-}
-
-func (h *showServiceHandler) VerifySeat(ctx context.Context, in *VerifySeatMessage, out *VerifySeatResponse) error {
-	return h.ShowServiceHandler.VerifySeat(ctx, in, out)
 }
 
 func (h *showServiceHandler) KillShowsHall(ctx context.Context, in *KillShowsHallMessage, out *KillShowsHallResponse) error {

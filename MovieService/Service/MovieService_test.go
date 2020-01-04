@@ -1,9 +1,9 @@
-package MovieService
+package Service
 
 import (
 	"context"
 	"fmt"
-	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/messages"
+	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/Service/messages"
 	"testing"
 )
 

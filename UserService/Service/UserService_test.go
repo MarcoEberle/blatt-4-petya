@@ -1,9 +1,9 @@
-package UserService
+package Service
 
 import (
 	"context"
 	"fmt"
-	UserService "github.com/ob-vss-ws19/blatt-4-petya/UserService/messages"
+	UserService "github.com/ob-vss-ws19/blatt-4-petya/UserService/Service/messages"
 	"testing"
 )
 
