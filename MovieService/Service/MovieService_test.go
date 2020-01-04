@@ -16,7 +16,7 @@ func TestCreateMovie(t *testing.T) {
 
 	if er == nil {
 		if r.MovieID > 0 {
-			t.Log("Successfully created user.")
+			t.Log("Successfully created movie.")
 		}
 	} else {
 		fmt.Println(er)

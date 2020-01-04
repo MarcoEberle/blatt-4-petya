@@ -31,7 +31,10 @@ func (msrv MovieMicroService) CreateMovie(context context.Context, req *MovieSer
 	msrv.mu.Lock()
 
 	msrv.MovieRepository[msrv.NextID] = &Movie{title: req.Title}
+	res.MovieID = msrv.NextID
 	msrv.NextID++
+
+	return fmt.Errorf("TEST")
 
 	msrv.mu.Unlock()
 	return nil
@@ -57,14 +60,17 @@ func (msrv MovieMicroService) DeleteMovie(context context.Context, req *MovieSer
 }
 
 func (msrv MovieMicroService) GetMovie(context context.Context, req *MovieService.GetMovieMessage, res *MovieService.GetMovieResponse) error {
+	msrv.mu.Lock()
 	m, ok := msrv.MovieRepository[req.MovieID]
 
 	if ok {
 		res.MovieID = req.MovieID
 		res.Title = m.title
+		msrv.mu.Unlock()
 		return nil
 	}
 
+	msrv.mu.Unlock()
 	return fmt.Errorf("The movie could not be found.")
 }
 
