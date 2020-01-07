@@ -14,9 +14,9 @@ func main() {
 	movieService := MovieService.NewMovieService("MovieService", clientService.Client())
 
 	test1ID := createMovie("test1", movieService)
-	fmt.Println("test1ID:" + string(test1ID))
-	test2ID := createMovie("test1", movieService)
-	fmt.Println("test2ID:" + string(test2ID))
+	fmt.Printf("test1ID: %d", test1ID)
+	//test2ID := createMovie("test1", movieService)
+	//fmt.Println("test2ID:" + string(test2ID))
 
 	res2, err2 := movieService.GetMovie(context.TODO(), &MovieService.GetMovieMessage{
 		MovieID: test1ID,
@@ -24,10 +24,9 @@ func main() {
 
 	if err2 != nil {
 		fmt.Println(err2)
-		return
 	}
 
-	fmt.Println(string(res2.MovieID) + ":" + res2.Title)
+	fmt.Printf("Got movie: %d %s", res2.MovieID, res2.Title)
 }
 
 func createMovie(name string, movieService MovieService.MovieService) int32 {
@@ -39,7 +38,7 @@ func createMovie(name string, movieService MovieService.MovieService) int32 {
 		fmt.Println(err)
 		return -1
 	}
-	fmt.Println(res.MovieID)
+	fmt.Printf("Created: %s with ID %d", name, res.MovieID)
 
 	return res.MovieID
 }

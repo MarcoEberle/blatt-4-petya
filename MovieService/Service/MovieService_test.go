@@ -37,7 +37,7 @@ func TestGetMovie(t *testing.T) {
 
 	if er == nil {
 		if r.MovieID > 0 {
-			t.Log("Successfully got movie.")
+			t.Logf("Successfully got movie: %d %s", rr.MovieID, rr.Title)
 		}
 	} else {
 		fmt.Println(er)

@@ -108,14 +108,14 @@ func (hsrv HallMicroService) VerifySeat(context context.Context, req *HallServic
 	return nil
 }
 
-func (usrv HallMicroService) SetBookingService(shsrv func() ShowService.ShowService) {
-	usrv.mu.Lock()
-	usrv.ShowService = shsrv
-	usrv.mu.Unlock()
+func (hsrv HallMicroService) SetBookingService(shsrv func() ShowService.ShowService) {
+	hsrv.mu.Lock()
+	hsrv.ShowService = shsrv
+	hsrv.mu.Unlock()
 }
 
-func (usrv HallMicroService) SetShowService(ssrv func() ShowService.ShowService) {
-	usrv.mu.Lock()
-	usrv.ShowService = ssrv
-	usrv.mu.Unlock()
+func (hsrv HallMicroService) SetShowService(ssrv func() ShowService.ShowService) {
+	hsrv.mu.Lock()
+	hsrv.ShowService = ssrv
+	hsrv.mu.Unlock()
 }

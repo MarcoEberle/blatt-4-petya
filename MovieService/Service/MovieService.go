@@ -15,7 +15,7 @@ type Movie struct {
 type MovieMicroService struct {
 	MovieRepository map[int32]*Movie
 	NextID          int32
-	mu              *sync.RWMutex
+	mu              *sync.Mutex
 	ShowService     func() ShowService.ShowService
 }
 
@@ -23,49 +23,62 @@ func Spawn() *MovieMicroService {
 	return &MovieMicroService{
 		MovieRepository: make(map[int32]*Movie),
 		NextID:          1,
-		mu:              &sync.RWMutex{},
+		mu:              &sync.Mutex{},
 	}
 }
 
-func (msrv MovieMicroService) CreateMovie(context context.Context, req *MovieService.CreateMovieMessage, res *MovieService.CreateMovieResponse) error {
+func (msrv *MovieMicroService) CreateMovie(ctx context.Context, in *MovieService.CreateMovieMessage, out *MovieService.CreateMovieResponse) error {
+
+	fmt.Println("ENTERED CREATEDMOVIE")
 	msrv.mu.Lock()
 
-	msrv.MovieRepository[msrv.NextID] = &Movie{title: req.Title}
-	res.MovieID = msrv.NextID
+	fmt.Printf("NextID: %d", msrv.NextID)
+	fmt.Println()
+	fmt.Printf("Title: %s", in.Title)
+	fmt.Println()
+
+	msrv.MovieRepository[msrv.NextID] = &Movie{title: in.Title}
+	out.MovieID = msrv.NextID
 	msrv.NextID++
 
-	return fmt.Errorf("TEST")
+	for i, ele := range msrv.MovieRepository {
+		fmt.Printf("%d: %s", i, ele.title)
+		fmt.Println()
+	}
+
+	fmt.Printf("NextID: %d", msrv.NextID)
 
 	msrv.mu.Unlock()
+	fmt.Println("EXITED CREATEDMOVIE")
 	return nil
 }
 
-func (msrv MovieMicroService) DeleteMovie(context context.Context, req *MovieService.DeleteMovieMessage, res *MovieService.DeleteMovieResponse) error {
+func (msrv *MovieMicroService) DeleteMovie(ctx context.Context, in *MovieService.DeleteMovieMessage, out *MovieService.DeleteMovieResponse) error {
 	msrv.mu.Lock()
 
-	_, ok := msrv.MovieRepository[req.MovieID]
+	_, ok := msrv.MovieRepository[in.MovieID]
 
 	if ok {
 		s := msrv.ShowService()
 
 		message := &ShowService.KillShowsMovieMessage{
-			MovieID: req.MovieID,
+			MovieID: in.MovieID,
 		}
 
-		s.KillShowsMovie(context, message)
+		s.KillShowsMovie(ctx, message)
 	}
 
 	msrv.mu.Unlock()
 	return nil
 }
 
-func (msrv MovieMicroService) GetMovie(context context.Context, req *MovieService.GetMovieMessage, res *MovieService.GetMovieResponse) error {
+func (msrv *MovieMicroService) GetMovie(ctx context.Context, in *MovieService.GetMovieMessage, out *MovieService.GetMovieResponse) error {
 	msrv.mu.Lock()
-	m, ok := msrv.MovieRepository[req.MovieID]
+	m, ok := msrv.MovieRepository[in.MovieID]
 
 	if ok {
-		res.MovieID = req.MovieID
-		res.Title = m.title
+		out.MovieID = in.MovieID
+		out.Title = m.title
 		msrv.mu.Unlock()
 		return nil
 	}
@@ -74,7 +87,7 @@ func (msrv MovieMicroService) GetMovie(context context.Context, req *MovieServic
 	return fmt.Errorf("The movie could not be found.")
 }
 
-func (msrv MovieMicroService) SetShowService(ssrv func() ShowService.ShowService) {
+func (msrv *MovieMicroService) SetShowService(ssrv func() ShowService.ShowService) {
 	msrv.mu.Lock()
 	msrv.ShowService = ssrv
 	msrv.mu.Unlock()
