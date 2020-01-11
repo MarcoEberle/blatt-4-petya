@@ -27,14 +27,14 @@ type BookingMicroService struct {
 	HallService       func() HallService.HallService
 	ShowService       func() ShowService.ShowService
 	NextId            int32
-	mu                *sync.RWMutex
+	mu                *sync.Mutex
 }
 
 func Spawn() *BookingMicroService {
 	return &BookingMicroService{
 		bookingRepository: make(map[int32]*Booking),
 		NextId:            1,
-		mu:                &sync.RWMutex{},
+		mu:                &sync.Mutex{},
 	}
 }
 

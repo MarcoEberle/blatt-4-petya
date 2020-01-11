@@ -15,7 +15,7 @@ type User struct {
 type UserMicroService struct {
 	userRepository map[int32]*User
 	BookingService func() BookingService.BookingService
-	mu             *sync.RWMutex
+	mu             *sync.Mutex
 	NextUserID     int32
 }
 
@@ -23,7 +23,7 @@ func Spawn() *UserMicroService {
 	return &UserMicroService{
 		userRepository: make(map[int32]*User),
 		BookingService: nil,
-		mu:             &sync.RWMutex{},
+		mu:             &sync.Mutex{},
 		NextUserID:     1,
 	}
 }

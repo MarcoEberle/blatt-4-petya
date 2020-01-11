@@ -232,7 +232,8 @@ func createHall(name string, rows int32, seatsPerRow int32, hallService HallServ
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println("Retrying...")
-		} else {
+		}
+		if res.HallID > 0 {
 			test1ID = res.HallID
 		}
 	}
@@ -256,7 +257,9 @@ func createMovie(name string, movieService MovieService.MovieService) int32 {
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println("Retrying...")
-		} else {
+		}
+
+		if res.MovieID > 0 {
 			test1ID = res.MovieID
 		}
 	}

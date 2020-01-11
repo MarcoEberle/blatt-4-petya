@@ -30,7 +30,7 @@ type Show struct {
 type ShowMicroService struct {
 	ShowRepository map[int32]*Show
 	NextID         int32
-	mu             *sync.RWMutex
+	mu             *sync.Mutex
 	HallService    func() HallService.HallService
 	MovieService   func() MovieService.MovieService
 	BookingService func() BookingService.BookingService
@@ -40,7 +40,7 @@ func Spawn() *ShowMicroService {
 	return &ShowMicroService{
 		ShowRepository: make(map[int32]*Show),
 		NextID:         1,
-		mu:             &sync.RWMutex{},
+		mu:             &sync.Mutex{},
 	}
 }
 
@@ -73,19 +73,16 @@ func (shsrv *ShowMicroService) CreateShow(ctx context.Context, req *ShowService.
 	}
 	const timeout = 40 * time.Second
 
-	movieID := int32(-1)
-	for movieID == -1 {
+	tempErr := true
+	for tempErr {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		m, merr := m.GetMovie(ctx, mmes)
-		if merr != nil {
+		tempErr = merr != nil
+		if !tempErr && m.MovieID <= 0 {
 			shsrv.mu.Unlock()
-		}
-
-		if m.MovieID == 0 {
 			return fmt.Errorf("The movie does not exist.")
 		}
-		movieID = m.MovieID
 	}
 
 	h := shsrv.HallService()
@@ -93,18 +90,16 @@ func (shsrv *ShowMicroService) CreateShow(ctx context.Context, req *ShowService.
 		HallID: req.HallID,
 	}
 
-	hallID := int32(-1)
-	for hallID == -1 {
+	tempErr = true
+	for tempErr {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		h, herr := h.GetHall(ctx, hmes)
-		if herr != nil {
+		tempErr = herr != nil
+		if !tempErr && h.HallID <= 0 {
 			shsrv.mu.Unlock()
-		}
-		if hallID == 0 {
 			return fmt.Errorf("The hall does not exist.")
 		}
-		hallID = h.HallID
 	}
 
 	shsrv.ShowRepository[shsrv.NextID] = &Show{

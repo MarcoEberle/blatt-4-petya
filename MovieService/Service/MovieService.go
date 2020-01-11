@@ -29,8 +29,8 @@ func Spawn() *MovieMicroService {
 
 func (msrv *MovieMicroService) CreateMovie(ctx context.Context, in *MovieService.CreateMovieMessage, out *MovieService.CreateMovieResponse) error {
 
-	fmt.Println("ENTERED CREATEDMOVIE")
 	msrv.mu.Lock()
+	fmt.Println("ENTERED CREATEDMOVIE")
 
 	fmt.Printf("NextID: %d", msrv.NextID)
 	fmt.Println()
@@ -68,7 +68,7 @@ func (msrv *MovieMicroService) DeleteMovie(ctx context.Context, in *MovieService
 		s.KillShowsMovie(ctx, message)
 	}
 
-	msrv.mu.Unlock()
+	defer msrv.mu.Unlock()
 	return nil
 }
 
@@ -79,17 +79,17 @@ func (msrv *MovieMicroService) GetMovie(ctx context.Context, in *MovieService.Ge
 	if ok {
 		out.MovieID = in.MovieID
 		out.Title = m.title
-		msrv.mu.Unlock()
+		defer msrv.mu.Unlock()
 		return nil
 	}
 
 	out.MovieID = 0
-	msrv.mu.Unlock()
+	defer msrv.mu.Unlock()
 	return fmt.Errorf("The movie could not be found.")
 }
 
 func (msrv *MovieMicroService) SetShowService(ssrv func() ShowService.ShowService) {
 	msrv.mu.Lock()
 	msrv.ShowService = ssrv
-	msrv.mu.Unlock()
+	defer msrv.mu.Unlock()
 }

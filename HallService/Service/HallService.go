@@ -17,7 +17,7 @@ type Hall struct {
 type HallMicroService struct {
 	HallRepository map[int32]*Hall
 	NextID         int32
-	mu             *sync.RWMutex
+	mu             *sync.Mutex
 	ShowService    func() ShowService.ShowService
 }
 
@@ -25,7 +25,7 @@ func Spawn() *HallMicroService {
 	return &HallMicroService{
 		HallRepository: make(map[int32]*Hall),
 		NextID:         1,
-		mu:             &sync.RWMutex{},
+		mu:             &sync.Mutex{},
 	}
 }
 
