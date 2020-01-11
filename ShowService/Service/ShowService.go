@@ -8,6 +8,7 @@ import (
 	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/Service/messages"
 	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	"sync"
+	"time"
 )
 
 const (
@@ -43,44 +44,67 @@ func Spawn() *ShowMicroService {
 	}
 }
 
-func (shsrv ShowMicroService) SetMovieService(msrv func() MovieService.MovieService) {
+func (shsrv *ShowMicroService) SetMovieService(msrv func() MovieService.MovieService) {
 	shsrv.mu.Lock()
 	shsrv.MovieService = msrv
 	shsrv.mu.Unlock()
 }
 
-func (shsrv ShowMicroService) SetHallService(hsrv func() HallService.HallService) {
+func (shsrv *ShowMicroService) SetHallService(hsrv func() HallService.HallService) {
 	shsrv.mu.Lock()
 	shsrv.HallService = hsrv
 	shsrv.mu.Unlock()
 }
 
-func (shsrv ShowMicroService) SetBookingService(bsrv func() BookingService.BookingService) {
+func (shsrv *ShowMicroService) SetBookingService(bsrv func() BookingService.BookingService) {
 	shsrv.mu.Lock()
 	shsrv.BookingService = bsrv
 	shsrv.mu.Unlock()
 }
 
-func (shsrv ShowMicroService) CreateShow(context context.Context, req *ShowService.CreateShowMessage, res *ShowService.CreateShowResponse) error {
+func (shsrv *ShowMicroService) CreateShow(ctx context.Context, req *ShowService.CreateShowMessage, res *ShowService.CreateShowResponse) error {
 	shsrv.mu.Lock()
+
+	fmt.Printf("Received: hallID %d, movieID %d ", req.HallID, req.MovieID)
+
 	m := shsrv.MovieService()
 	mmes := &MovieService.GetMovieMessage{
 		MovieID: req.MovieID,
 	}
-	_, merr := m.GetMovie(context, mmes)
-	if merr != nil {
-		shsrv.mu.Unlock()
-		return fmt.Errorf("The movie does not exist.")
+	const timeout = 40 * time.Second
+
+	movieID := int32(-1)
+	for movieID == -1 {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		m, merr := m.GetMovie(ctx, mmes)
+		if merr != nil {
+			shsrv.mu.Unlock()
+		}
+
+		if m.MovieID == 0 {
+			return fmt.Errorf("The movie does not exist.")
+		}
+		movieID = m.MovieID
 	}
 
 	h := shsrv.HallService()
 	hmes := &HallService.GetHallMessage{
 		HallID: req.HallID,
 	}
-	_, herr := h.GetHall(context, hmes)
-	if herr != nil {
-		shsrv.mu.Unlock()
-		return fmt.Errorf("The hall does not exist.")
+
+	hallID := int32(-1)
+	for hallID == -1 {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		h, herr := h.GetHall(ctx, hmes)
+		if herr != nil {
+			shsrv.mu.Unlock()
+		}
+		if hallID == 0 {
+			return fmt.Errorf("The hall does not exist.")
+		}
+		hallID = h.HallID
 	}
 
 	shsrv.ShowRepository[shsrv.NextID] = &Show{
@@ -88,11 +112,14 @@ func (shsrv ShowMicroService) CreateShow(context context.Context, req *ShowServi
 		movieID:        req.MovieID,
 		SeatRepository: make(map[int32]*Seat),
 	}
+
+	res.ShowID = shsrv.NextID
+	shsrv.NextID++
 	shsrv.mu.Unlock()
 	return nil
 }
 
-func (shsrv ShowMicroService) DeleteShow(context context.Context, req *ShowService.DeleteShowMessage, res *ShowService.DeleteShowResponse) error {
+func (shsrv *ShowMicroService) DeleteShow(ctx context.Context, req *ShowService.DeleteShowMessage, res *ShowService.DeleteShowResponse) error {
 	shsrv.mu.Lock()
 	res.Success = false
 	_, hall := shsrv.ShowRepository[req.ShowID]
@@ -102,7 +129,7 @@ func (shsrv ShowMicroService) DeleteShow(context context.Context, req *ShowServi
 			ShowID: req.ShowID,
 		}
 
-		bksrv.KillBookingsShow(context, mes)
+		bksrv.KillBookingsShow(ctx, mes)
 
 		delete(shsrv.ShowRepository, req.ShowID)
 		res.Success = true
@@ -114,7 +141,7 @@ func (shsrv ShowMicroService) DeleteShow(context context.Context, req *ShowServi
 	return fmt.Errorf("The show could not be deleted.")
 }
 
-func (shsrv ShowMicroService) BlockSeats(context context.Context, req *ShowService.BlockSeatMessage, res *ShowService.BlockSeatResponse) error {
+func (shsrv *ShowMicroService) BlockSeats(ctx context.Context, req *ShowService.BlockSeatMessage, res *ShowService.BlockSeatResponse) error {
 	shsrv.mu.Lock()
 	res.Success = false
 	res.BookingID = req.BookingID
@@ -135,7 +162,7 @@ func (shsrv ShowMicroService) BlockSeats(context context.Context, req *ShowServi
 		SeatID: req.SeatID,
 	}
 
-	status, err := h.VerifySeat(context, message)
+	status, err := h.VerifySeat(ctx, message)
 	if !status.Success || err != nil {
 		return fmt.Errorf("The seats are not existing.")
 	}
@@ -160,7 +187,7 @@ func (shsrv ShowMicroService) BlockSeats(context context.Context, req *ShowServi
 	return nil
 }
 
-func (shsrv ShowMicroService) LockSeats(context context.Context, req *ShowService.LockSeatMessage, res *ShowService.LockSeatResponse) error {
+func (shsrv *ShowMicroService) LockSeats(ctx context.Context, req *ShowService.LockSeatMessage, res *ShowService.LockSeatResponse) error {
 	shsrv.mu.Lock()
 	res.Success = false
 	res.BookingID = req.BookingID
@@ -180,7 +207,7 @@ func (shsrv ShowMicroService) LockSeats(context context.Context, req *ShowServic
 	return nil
 }
 
-func (shsrv ShowMicroService) FreeSeats(context context.Context, req *ShowService.FreeSeatMessage, res *ShowService.FreeSeatResponse) error {
+func (shsrv *ShowMicroService) FreeSeats(ctx context.Context, req *ShowService.FreeSeatMessage, res *ShowService.FreeSeatResponse) error {
 	shsrv.mu.Lock()
 	res.Success = false
 
@@ -195,7 +222,7 @@ func (shsrv ShowMicroService) FreeSeats(context context.Context, req *ShowServic
 	return nil
 }
 
-func (shsrv ShowMicroService) KillShowsHall(context context.Context, req *ShowService.KillShowsHallMessage, res *ShowService.KillShowsHallResponse) error {
+func (shsrv *ShowMicroService) KillShowsHall(ctx context.Context, req *ShowService.KillShowsHallMessage, res *ShowService.KillShowsHallResponse) error {
 	shsrv.mu.Lock()
 	res.Success = false
 
@@ -207,7 +234,7 @@ func (shsrv ShowMicroService) KillShowsHall(context context.Context, req *ShowSe
 				ShowID: index,
 			}
 
-			b.KillBookingsShow(context, message)
+			b.KillBookingsShow(ctx, message)
 		}
 	}
 
@@ -216,7 +243,7 @@ func (shsrv ShowMicroService) KillShowsHall(context context.Context, req *ShowSe
 	return nil
 }
 
-func (shsrv ShowMicroService) KillShowsMovie(context context.Context, req *ShowService.KillShowsMovieMessage, res *ShowService.KillShowsMovieResponse) error {
+func (shsrv *ShowMicroService) KillShowsMovie(ctx context.Context, req *ShowService.KillShowsMovieMessage, res *ShowService.KillShowsMovieResponse) error {
 	shsrv.mu.Lock()
 	res.Success = false
 
@@ -228,7 +255,7 @@ func (shsrv ShowMicroService) KillShowsMovie(context context.Context, req *ShowS
 				ShowID: index,
 			}
 
-			b.KillBookingsShow(context, message)
+			b.KillBookingsShow(ctx, message)
 		}
 	}
 
@@ -237,7 +264,7 @@ func (shsrv ShowMicroService) KillShowsMovie(context context.Context, req *ShowS
 	return nil
 }
 
-func (shsrv ShowMicroService) GetShows(context context.Context, req *ShowService.GetShowsMessage, res *ShowService.GetShowsResponse) error {
+func (shsrv *ShowMicroService) GetShows(ctx context.Context, req *ShowService.GetShowsMessage, res *ShowService.GetShowsResponse) error {
 	shsrv.mu.Lock()
 	shows := []*ShowService.Show{}
 
@@ -255,7 +282,7 @@ func (shsrv ShowMicroService) GetShows(context context.Context, req *ShowService
 	return nil
 }
 
-func (shsrv ShowMicroService) GetShow(context context.Context, req *ShowService.GetShowMessage, res *ShowService.GetShowResponse) error {
+func (shsrv *ShowMicroService) GetShow(ctx context.Context, req *ShowService.GetShowMessage, res *ShowService.GetShowResponse) error {
 	shsrv.mu.Lock()
 
 	ele, ok := shsrv.ShowRepository[req.ShowID]

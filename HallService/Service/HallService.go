@@ -29,7 +29,7 @@ func Spawn() *HallMicroService {
 	}
 }
 
-func (hsrv HallMicroService) CreateHall(context context.Context, req *HallService.CreateHallMessage, res *HallService.CreateHallResponse) error {
+func (hsrv *HallMicroService) CreateHall(context context.Context, req *HallService.CreateHallMessage, res *HallService.CreateHallResponse) error {
 	hsrv.mu.Lock()
 	hsrv.HallRepository[hsrv.NextID] = &Hall{
 		hallName:    req.HallName,
@@ -41,10 +41,11 @@ func (hsrv HallMicroService) CreateHall(context context.Context, req *HallServic
 	hsrv.NextID++
 	hsrv.mu.Unlock()
 
+	fmt.Printf("Created hall: %d %s", res.HallID, req.HallName)
 	return nil
 }
 
-func (hsrv HallMicroService) DeleteHall(context context.Context, req *HallService.DeleteHallMessage, res *HallService.DeleteHallResponse) error {
+func (hsrv *HallMicroService) DeleteHall(context context.Context, req *HallService.DeleteHallMessage, res *HallService.DeleteHallResponse) error {
 	hsrv.mu.Lock()
 	res.Success = false
 	_, hall := hsrv.HallRepository[req.HallID]
@@ -68,8 +69,9 @@ func (hsrv HallMicroService) DeleteHall(context context.Context, req *HallServic
 	return fmt.Errorf("The hall could not be deleted.")
 }
 
-func (hsrv HallMicroService) GetHall(context context.Context, req *HallService.GetHallMessage, res *HallService.GetHallResponse) error {
+func (hsrv *HallMicroService) GetHall(context context.Context, req *HallService.GetHallMessage, res *HallService.GetHallResponse) error {
 	hsrv.mu.Lock()
+
 	_, hall := hsrv.HallRepository[req.HallID]
 	if hall {
 		h := hsrv.HallRepository[req.HallID]
@@ -81,11 +83,16 @@ func (hsrv HallMicroService) GetHall(context context.Context, req *HallService.G
 		return nil
 	}
 
+	for i, ele := range hsrv.HallRepository {
+		fmt.Printf("%d: %s %dx%d\n", i, ele.hallName, ele.rows, ele.seatsPerRow)
+	}
+
+	res.HallID = 0
 	hsrv.mu.Unlock()
 	return fmt.Errorf("The hall could not be found.")
 }
 
-func (hsrv HallMicroService) VerifySeat(context context.Context, req *HallService.VerifySeatMessage, res *HallService.VerifySeatResponse) error {
+func (hsrv *HallMicroService) VerifySeat(context context.Context, req *HallService.VerifySeatMessage, res *HallService.VerifySeatResponse) error {
 	hsrv.mu.Lock()
 	res.Success = false
 	_, hall := hsrv.HallRepository[req.HallID]
@@ -108,13 +115,13 @@ func (hsrv HallMicroService) VerifySeat(context context.Context, req *HallServic
 	return nil
 }
 
-func (hsrv HallMicroService) SetBookingService(shsrv func() ShowService.ShowService) {
+func (hsrv *HallMicroService) SetBookingService(shsrv func() ShowService.ShowService) {
 	hsrv.mu.Lock()
 	hsrv.ShowService = shsrv
 	hsrv.mu.Unlock()
 }
 
-func (hsrv HallMicroService) SetShowService(ssrv func() ShowService.ShowService) {
+func (hsrv *HallMicroService) SetShowService(ssrv func() ShowService.ShowService) {
 	hsrv.mu.Lock()
 	hsrv.ShowService = ssrv
 	hsrv.mu.Unlock()

@@ -83,6 +83,7 @@ func (msrv *MovieMicroService) GetMovie(ctx context.Context, in *MovieService.Ge
 		return nil
 	}
 
+	out.MovieID = 0
 	msrv.mu.Unlock()
 	return fmt.Errorf("The movie could not be found.")
 }

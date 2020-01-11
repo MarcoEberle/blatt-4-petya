@@ -38,13 +38,13 @@ func Spawn() *BookingMicroService {
 	}
 }
 
-func (bksrv BookingMicroService) SetShowService(shsrv func() ShowService.ShowService) {
+func (bksrv *BookingMicroService) SetShowService(shsrv func() ShowService.ShowService) {
 	bksrv.mu.Lock()
 	bksrv.ShowService = shsrv
 	bksrv.mu.Unlock()
 }
 
-func (bksrv BookingMicroService) SetHallService(hsrv func() HallService.HallService) {
+func (bksrv *BookingMicroService) SetHallService(hsrv func() HallService.HallService) {
 	bksrv.mu.Lock()
 	bksrv.HallService = hsrv
 	bksrv.mu.Unlock()
@@ -66,8 +66,9 @@ func (bksrv *BookingMicroService) ResetBookings() {
 	bksrv.mu.Unlock()
 }
 
-func (bksrv *BookingMicroService) ConfirmBooking(context context.Context, req *BookingService.ConfirmBookingMessage, res *BookingService.ConfirmBookingResponse) error {
+func (bksrv *BookingMicroService) ConfirmBooking(ctx context.Context, req *BookingService.ConfirmBookingMessage, res *BookingService.ConfirmBookingResponse) error {
 	bksrv.ResetBookings()
+	const timeout = 40 * time.Second
 
 	bksrv.mu.Lock()
 	s := bksrv.ShowService()
@@ -83,10 +84,16 @@ func (bksrv *BookingMicroService) ConfirmBooking(context context.Context, req *B
 		BookingID: req.BookingID,
 	}
 
-	bkg, _ := s.LockSeats(context, message)
-	if !bkg.Success {
-		bksrv.mu.Unlock()
-		return fmt.Errorf("The booking was rejected.")
+	tempErr := true
+	for tempErr {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		bkg, err := s.LockSeats(ctx, message)
+		tempErr = err != nil
+		if !tempErr && !bkg.Success {
+			bksrv.mu.Unlock()
+			return fmt.Errorf("The booking was rejected.")
+		}
 	}
 
 	bksrv.bookingRepository[req.BookingID].Confirmation.Confirmed = true
@@ -96,8 +103,9 @@ func (bksrv *BookingMicroService) ConfirmBooking(context context.Context, req *B
 	return nil
 }
 
-func (bksrv *BookingMicroService) CreateBooking(context context.Context, req *BookingService.CreateBookingMessage, res *BookingService.CreateBookingResponse) error {
+func (bksrv *BookingMicroService) CreateBooking(ctx context.Context, req *BookingService.CreateBookingMessage, res *BookingService.CreateBookingResponse) error {
 	bksrv.ResetBookings()
+	const timeout = 40 * time.Second
 
 	bksrv.mu.Lock()
 	s := bksrv.ShowService()
@@ -107,10 +115,18 @@ func (bksrv *BookingMicroService) CreateBooking(context context.Context, req *Bo
 		ShowID:    req.ShowID,
 	}
 
-	booking, _ := s.BlockSeats(context, message)
-	if !booking.Success {
-		bksrv.mu.Unlock()
-		return fmt.Errorf("The booking was rejected.")
+	tempErr := true
+	for tempErr {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		booking, err := s.BlockSeats(ctx, message)
+
+		tempErr = err != nil
+
+		if !tempErr && !booking.Success {
+			bksrv.mu.Unlock()
+			return fmt.Errorf("The booking was rejected.")
+		}
 	}
 
 	bksrv.bookingRepository[bksrv.NextId] = &Booking{

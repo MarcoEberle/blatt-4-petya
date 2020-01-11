@@ -28,20 +28,22 @@ func Spawn() *UserMicroService {
 	}
 }
 
-func (usrv UserMicroService) CreateUser(context context.Context, req *UserService.CreateUserMessage, res *UserService.CreateUserResponse) error {
+func (usrv *UserMicroService) CreateUser(context context.Context, req *UserService.CreateUserMessage, res *UserService.CreateUserResponse) error {
 	if req.UserName != "" {
 		usrv.mu.Lock()
 		usrv.userRepository[usrv.NextUserID] = &User{userName: req.UserName}
 		res.UserID = usrv.NextUserID
 		usrv.NextUserID++
 		defer usrv.mu.Unlock()
+
+		fmt.Printf("Created user: %d %s", res.UserID, req.UserName)
 		return nil
 	}
 
 	return fmt.Errorf("The user could not be created.")
 }
 
-func (usrv UserMicroService) DeleteUser(context context.Context, req *UserService.DeleteUserMessage, res *UserService.DeleteUserResponse) error {
+func (usrv *UserMicroService) DeleteUser(context context.Context, req *UserService.DeleteUserMessage, res *UserService.DeleteUserResponse) error {
 	res.Success = false
 	_, storedUser := usrv.userRepository[req.UserID]
 
@@ -69,7 +71,7 @@ func (usrv UserMicroService) DeleteUser(context context.Context, req *UserServic
 	return nil
 }
 
-func (usrv UserMicroService) GetUser(context context.Context, req *UserService.GetUserMessage, res *UserService.GetUserResponse) error {
+func (usrv *UserMicroService) GetUser(context context.Context, req *UserService.GetUserMessage, res *UserService.GetUserResponse) error {
 	_, storedUser := usrv.userRepository[req.UserID]
 
 	if storedUser {
@@ -80,6 +82,6 @@ func (usrv UserMicroService) GetUser(context context.Context, req *UserService.G
 	return fmt.Errorf("The user could not be deleted.")
 }
 
-func (usrv UserMicroService) SetBookingService(bksrv func() BookingService.BookingService) {
+func (usrv *UserMicroService) SetBookingService(bksrv func() BookingService.BookingService) {
 	usrv.BookingService = bksrv
 }
