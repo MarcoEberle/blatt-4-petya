@@ -1,0 +1,9 @@
+FROM obraun/vss-protoactor-jenkins as builder
+COPY . /app
+WORKDIR /app/UserService
+ 
+RUN go build -o UserService main.go
+
+FROM iron/go
+EXPOSE 8200
+ENTRYPOINT ["/app/UserService"]

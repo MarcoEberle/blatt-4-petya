@@ -38,28 +38,28 @@ func Spawn() *BookingMicroService {
 	}
 }
 
-func (bksrv *BookingMicroService) SetShowService(shsrv func() ShowService.ShowService) {
-	bksrv.mu.Lock()
-	bksrv.ShowService = shsrv
-	bksrv.mu.Unlock()
+func (b *BookingMicroService) SetShowService(shsrv func() ShowService.ShowService) {
+	b.mu.Lock()
+	b.ShowService = shsrv
+	b.mu.Unlock()
 }
 
-func (bksrv *BookingMicroService) SetHallService(hsrv func() HallService.HallService) {
-	bksrv.mu.Lock()
-	bksrv.HallService = hsrv
-	bksrv.mu.Unlock()
+func (b *BookingMicroService) SetHallService(hsrv func() HallService.HallService) {
+	b.mu.Lock()
+	b.HallService = hsrv
+	b.mu.Unlock()
 }
 
-func (bksrv *BookingMicroService) ResetBookings() {
+func (b *BookingMicroService) ResetBookings() {
 	fmt.Println("-----Entered ResetBookings-----")
-	bksrv.mu.Lock()
+	b.mu.Lock()
 	fmt.Println("Locked ResetBookings")
 
-	for bkID, ele := range bksrv.bookingRepository {
+	for bkID, ele := range b.bookingRepository {
 		if !ele.Confirmation.Confirmed && ele.Confirmation.time.After(ele.Confirmation.time.Add(time.Minute*5)) {
 			fmt.Printf("Booking expired: %d\n", bkID)
 			fmt.Println("Freeing seats in show...")
-			s := bksrv.ShowService()
+			s := b.ShowService()
 			message := &ShowService.FreeSeatMessage{
 				ShowID:    ele.ShowID,
 				BookingID: bkID,
@@ -69,33 +69,33 @@ func (bksrv *BookingMicroService) ResetBookings() {
 			if err != nil {
 				fmt.Println("Freeing seats failed!")
 				fmt.Println("Unlocked ResetBookings")
-				bksrv.mu.Unlock()
+				b.mu.Unlock()
 				fmt.Println("-----Exited ResetBookings-----")
 			}
 		}
 	}
 
 	fmt.Println("Unlocked ResetBookings")
-	bksrv.mu.Unlock()
+	b.mu.Unlock()
 	fmt.Println("-----Exited ResetBookings-----")
 }
 
-func (bksrv *BookingMicroService) ConfirmBooking(ctx context.Context, req *BookingService.ConfirmBookingMessage, res *BookingService.ConfirmBookingResponse) error {
+func (b *BookingMicroService) ConfirmBooking(ctx context.Context, req *BookingService.ConfirmBookingMessage, res *BookingService.ConfirmBookingResponse) error {
 	fmt.Println("-----Entered ConfirmBooking-----")
-	bksrv.mu.Lock()
+	b.mu.Lock()
 	fmt.Println("Locked ConfirmBooking")
 
-	booking, ok := bksrv.bookingRepository[req.BookingID]
+	booking, ok := b.bookingRepository[req.BookingID]
 	if !ok {
 		fmt.Println("The booking does not exist!")
 		fmt.Println("Unlocked ConfirmBooking")
-		bksrv.mu.Unlock()
+		b.mu.Unlock()
 		fmt.Println("-----Exited ConfirmBooking-----")
 		return fmt.Errorf("the booking does not exist")
 	}
 
 	fmt.Println("Locking seats...")
-	s := bksrv.ShowService()
+	s := b.ShowService()
 
 	message := &ShowService.LockSeatMessage{
 		ShowID:    booking.ShowID,
@@ -103,36 +103,36 @@ func (bksrv *BookingMicroService) ConfirmBooking(ctx context.Context, req *Booki
 	}
 
 	bkg, err := s.LockSeats(ctx, message)
-	if !bkg.Success {
-		fmt.Errorf("The booking was rejected.")
+	if err != nil || !bkg.Success {
+		fmt.Println("The booking was rejected.")
 		fmt.Println("Unlocked ConfirmBooking")
-		bksrv.mu.Unlock()
+		b.mu.Unlock()
 		fmt.Println("-----Exited ConfirmBooking-----")
 		return err
 	}
 
 	fmt.Println("Booking confirmed!")
-	bksrv.bookingRepository[req.BookingID].Confirmation.Confirmed = true
-	bksrv.bookingRepository[req.BookingID].Confirmation.time = time.Now()
+	b.bookingRepository[req.BookingID].Confirmation.Confirmed = true
+	b.bookingRepository[req.BookingID].Confirmation.time = time.Now()
 
 	res.BookingID = req.BookingID
 
 	fmt.Println("Unlocked ConfirmBooking")
-	bksrv.mu.Unlock()
+	b.mu.Unlock()
 	fmt.Println("-----Exited ConfirmBooking-----")
 	return nil
 }
 
-func (bksrv *BookingMicroService) CreateBooking(ctx context.Context, req *BookingService.CreateBookingMessage, res *BookingService.CreateBookingResponse) error {
+func (b *BookingMicroService) CreateBooking(ctx context.Context, req *BookingService.CreateBookingMessage, res *BookingService.CreateBookingResponse) error {
 	fmt.Println("-----Entered CreateBooking-----")
-	bksrv.mu.Lock()
+	b.mu.Lock()
 	fmt.Println("Locked CreateBooking")
 
 	fmt.Println("Blocking seats...")
-	s := bksrv.ShowService()
+	s := b.ShowService()
 
 	message := &ShowService.BlockSeatMessage{
-		BookingID: bksrv.NextId,
+		BookingID: b.NextId,
 		ShowID:    req.ShowID,
 		SeatID:    req.Seats,
 	}
@@ -142,7 +142,7 @@ func (bksrv *BookingMicroService) CreateBooking(ctx context.Context, req *Bookin
 	if err != nil {
 		fmt.Println("The booking was rejected.")
 		fmt.Println("Unlocked CreateBooking")
-		bksrv.mu.Unlock()
+		b.mu.Unlock()
 		fmt.Println("-----Exited CreateBooking-----")
 		return err
 	}
@@ -150,12 +150,12 @@ func (bksrv *BookingMicroService) CreateBooking(ctx context.Context, req *Bookin
 	if !booking.Success {
 		fmt.Println("The booking was rejected.")
 		fmt.Println("Unlocked CreateBooking")
-		bksrv.mu.Unlock()
+		b.mu.Unlock()
 		fmt.Println("-----Exited CreateBooking-----")
-		return fmt.Errorf("The booking was rejected.")
+		return fmt.Errorf("the booking was rejected")
 	}
 
-	bksrv.bookingRepository[bksrv.NextId] = &Booking{
+	b.bookingRepository[b.NextId] = &Booking{
 		UserID: req.UserID,
 		ShowID: req.ShowID,
 		Seats:  req.Seats,
@@ -164,21 +164,21 @@ func (bksrv *BookingMicroService) CreateBooking(ctx context.Context, req *Bookin
 			Confirmed: false,
 		},
 	}
-	res.BookingID = bksrv.NextId
+	res.BookingID = b.NextId
 
-	bksrv.NextId++
+	b.NextId++
 	fmt.Println("Increased NextID")
 
 	fmt.Println("Unlocked CreateBooking")
-	bksrv.mu.Unlock()
+	b.mu.Unlock()
 	fmt.Println("-----Exited CreateBooking-----")
 	return nil
 }
 
-func (bksrv *BookingMicroService) DeleteElement(ctx context.Context, bookingID int32) error {
+func (b *BookingMicroService) DeleteElement(ctx context.Context, bookingID int32) error {
 	fmt.Println("-----Entered DeleteElement-----")
 
-	booking, ok := bksrv.bookingRepository[bookingID]
+	booking, ok := b.bookingRepository[bookingID]
 	if !ok {
 		fmt.Println("The booking does not exist.")
 		fmt.Println("-----Exited DeleteElement-----")
@@ -187,7 +187,7 @@ func (bksrv *BookingMicroService) DeleteElement(ctx context.Context, bookingID i
 	fmt.Println("Found booking")
 
 	fmt.Println("Freeing seats...")
-	s := bksrv.ShowService()
+	s := b.ShowService()
 
 	message := &ShowService.FreeSeatMessage{
 		ShowID:    booking.ShowID,
@@ -201,25 +201,25 @@ func (bksrv *BookingMicroService) DeleteElement(ctx context.Context, bookingID i
 		return err
 	}
 
-	delete(bksrv.bookingRepository, bookingID)
+	delete(b.bookingRepository, bookingID)
 	fmt.Println("Deleted booking")
 
 	fmt.Println("-----Exited DeleteElement-----")
 	return nil
 }
 
-func (bksrv *BookingMicroService) DeleteBooking(context context.Context, req *BookingService.DeleteBookingMessage, res *BookingService.DeleteBookingResponse) error {
-	return bksrv.DeleteElement(context, req.BookingID)
+func (b *BookingMicroService) DeleteBooking(context context.Context, req *BookingService.DeleteBookingMessage, _ *BookingService.DeleteBookingResponse) error {
+	return b.DeleteElement(context, req.BookingID)
 }
 
-func (bksrv *BookingMicroService) GetUserBookings(context context.Context, req *BookingService.GetUserBookingsMessage, res *BookingService.GetUserBookingsResponse) error {
+func (b *BookingMicroService) GetUserBookings(_ context.Context, req *BookingService.GetUserBookingsMessage, res *BookingService.GetUserBookingsResponse) error {
 	fmt.Println("-----Entered GetUserBookings-----")
-	bksrv.mu.Lock()
+	b.mu.Lock()
 	fmt.Println("Locked GetUserBookings")
 
 	var bookings []int32
 
-	for index, ele := range bksrv.bookingRepository {
+	for index, ele := range b.bookingRepository {
 		if ele.UserID == req.UserID {
 			bookings = append(bookings, index)
 		}
@@ -229,17 +229,17 @@ func (bksrv *BookingMicroService) GetUserBookings(context context.Context, req *
 	res.UserID = req.UserID
 
 	fmt.Println("Unlocked GetUserBookings")
-	bksrv.mu.Unlock()
+	b.mu.Unlock()
 	fmt.Println("-----Exited GetUserBookings-----")
 	return nil
 }
 
-func (bksrv *BookingMicroService) GetBooking(context context.Context, req *BookingService.GetBookingMessage, res *BookingService.GetBookingResponse) error {
+func (b *BookingMicroService) GetBooking(_ context.Context, req *BookingService.GetBookingMessage, res *BookingService.GetBookingResponse) error {
 	fmt.Println("-----Entered GetBooking-----")
-	bksrv.mu.Lock()
+	b.mu.Lock()
 	fmt.Println("Locked GetBooking")
 
-	booking, ok := bksrv.bookingRepository[req.BookingID]
+	booking, ok := b.bookingRepository[req.BookingID]
 	if ok {
 		res.BookingID = req.BookingID
 		res.UserID = booking.UserID
@@ -247,31 +247,31 @@ func (bksrv *BookingMicroService) GetBooking(context context.Context, req *Booki
 		res.Seats = booking.Seats
 
 		fmt.Println("Unlocked GetBooking")
-		bksrv.mu.Unlock()
+		b.mu.Unlock()
 		fmt.Println("-----Exited GetBooking-----")
 		return nil
 	}
 	fmt.Println("Booking not found")
 
 	fmt.Println("Unlocked GetBooking")
-	bksrv.mu.Unlock()
+	b.mu.Unlock()
 	fmt.Println("-----Exited GetBooking-----")
 	return fmt.Errorf("the booking does not exist")
 }
 
-func (bksrv *BookingMicroService) KillBookingsShow(ctx context.Context, req *BookingService.KillBookingsShowMessage, res *BookingService.KillBookingsShowResponse) error {
+func (b *BookingMicroService) KillBookingsShow(ctx context.Context, req *BookingService.KillBookingsShowMessage, res *BookingService.KillBookingsShowResponse) error {
 	fmt.Println("-----Entered KillBookingsShow-----")
-	bksrv.mu.Lock()
+	b.mu.Lock()
 	fmt.Println("Locked KillBookingsShow")
 
 	fmt.Println("Deleting bookings...")
-	for index, ele := range bksrv.bookingRepository {
+	for index, ele := range b.bookingRepository {
 		if ele.ShowID == req.ShowID {
-			err := bksrv.DeleteElement(ctx, index)
+			err := b.DeleteElement(ctx, index)
 			if err != nil {
 				fmt.Println("Deleting booking failed")
 				fmt.Println("Unlocked KillBookingsShow")
-				bksrv.mu.Unlock()
+				b.mu.Unlock()
 				fmt.Println("-----Exited KillBookingsShow-----")
 				return err
 			}
@@ -281,31 +281,32 @@ func (bksrv *BookingMicroService) KillBookingsShow(ctx context.Context, req *Boo
 	res.Success = true
 
 	fmt.Println("Unlocked KillBookingsShow")
-	bksrv.mu.Unlock()
+	b.mu.Unlock()
 	fmt.Println("-----Exited KillBookingsShow-----")
 	return nil
 }
 
-func (bksrv *BookingMicroService) KillBookingsUser(ctx context.Context, req *BookingService.KillBookingsUserMessage, res *BookingService.KillBookingsUserResponse) error {
+func (b *BookingMicroService) KillBookingsUser(ctx context.Context, req *BookingService.KillBookingsUserMessage, res *BookingService.KillBookingsUserResponse) error {
 	fmt.Println("-----Entered KillBookingsUser-----")
-	bksrv.mu.Lock()
+	b.mu.Lock()
 	fmt.Println("Locked KillBookingsUser")
 
-	for index, ele := range bksrv.bookingRepository {
+	for index, ele := range b.bookingRepository {
 		if ele.UserID == req.UserID {
-			err := bksrv.DeleteElement(ctx, index)
+			err := b.DeleteElement(ctx, index)
 			if err != nil {
 				fmt.Println("Deleting booking failed")
+				res.Success = false
 				fmt.Println("Unlocked KillBookingsShow")
-				bksrv.mu.Unlock()
+				b.mu.Unlock()
 				fmt.Println("-----Exited KillBookingsShow-----")
 				return err
 			}
 		}
 	}
-
+	res.Success = true
 	fmt.Println("Unlocked KillBookingsUser")
-	bksrv.mu.Unlock()
+	b.mu.Unlock()
 	fmt.Println("-----Exited KillBookingsUser-----")
 	return nil
 }

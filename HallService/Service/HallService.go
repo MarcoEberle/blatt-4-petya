@@ -29,20 +29,20 @@ func Spawn() *HallMicroService {
 	}
 }
 
-func (hsrv *HallMicroService) CreateHall(context context.Context, req *HallService.CreateHallMessage, res *HallService.CreateHallResponse) error {
+func (h *HallMicroService) CreateHall(_ context.Context, req *HallService.CreateHallMessage, res *HallService.CreateHallResponse) error {
 	fmt.Println("-----Entered CreateHall-----")
-	hsrv.mu.Lock()
+	h.mu.Lock()
 	fmt.Println("Locked CreateHall")
-	hsrv.HallRepository[hsrv.NextID] = &Hall{
+	h.HallRepository[h.NextID] = &Hall{
 		hallName:    req.HallName,
 		rows:        req.Rows,
 		seatsPerRow: req.SeatsPerRow,
 	}
 	fmt.Println("Created Hall")
-	res.HallID = hsrv.NextID
+	res.HallID = h.NextID
 	fmt.Println("Increased NextID")
-	hsrv.NextID++
-	hsrv.mu.Unlock()
+	h.NextID++
+	h.mu.Unlock()
 	fmt.Println("Unlocked CreateHall")
 
 	fmt.Printf("Created hall: %d %s\n", res.HallID, req.HallName)
@@ -50,18 +50,18 @@ func (hsrv *HallMicroService) CreateHall(context context.Context, req *HallServi
 	return nil
 }
 
-func (hsrv *HallMicroService) DeleteHall(ctx context.Context, req *HallService.DeleteHallMessage, res *HallService.DeleteHallResponse) error {
+func (h *HallMicroService) DeleteHall(ctx context.Context, req *HallService.DeleteHallMessage, res *HallService.DeleteHallResponse) error {
 	fmt.Println("-----Entered DeleteHall-----")
-	hsrv.mu.Lock()
+	h.mu.Lock()
 	fmt.Println("Locked DeleteHall")
 	res.Success = false
-	_, hall := hsrv.HallRepository[req.HallID]
+	_, hall := h.HallRepository[req.HallID]
 	if hall {
 		fmt.Println("Found Hall")
-		delete(hsrv.HallRepository, req.HallID)
+		delete(h.HallRepository, req.HallID)
 
 		fmt.Println("Delete halls shows.....")
-		s := hsrv.ShowService()
+		s := h.ShowService()
 
 		message := &ShowService.KillShowsHallMessage{
 			HallID: req.HallID,
@@ -71,94 +71,94 @@ func (hsrv *HallMicroService) DeleteHall(ctx context.Context, req *HallService.D
 		if err != nil {
 			fmt.Println("Error while deleting halls shows!")
 			res.Success = false
-			hsrv.mu.Unlock()
+			h.mu.Unlock()
 			fmt.Println("Unlocked DeleteHall")
 			fmt.Println("-----Exited DeleteHall-----")
 			return err
 		}
 		fmt.Println("Deleted hall!")
 		res.Success = true
-		hsrv.mu.Unlock()
+		h.mu.Unlock()
 		fmt.Println("Unlocked DeleteHall")
 		fmt.Println("-----Exited DeleteHall-----")
 		return nil
 	}
 
-	hsrv.mu.Unlock()
+	h.mu.Unlock()
 	fmt.Println("Unlocked DeleteHall")
 	fmt.Println("-----Exited DeleteHall-----")
-	return fmt.Errorf("The hall could not be found.")
+	return fmt.Errorf("the hall could not be found")
 }
 
-func (hsrv *HallMicroService) GetHall(context context.Context, req *HallService.GetHallMessage, res *HallService.GetHallResponse) error {
+func (h *HallMicroService) GetHall(_ context.Context, req *HallService.GetHallMessage, res *HallService.GetHallResponse) error {
 	fmt.Println("-----Entered GetHall-----")
 	fmt.Println("Locked GetHall")
-	hsrv.mu.Lock()
+	h.mu.Lock()
 
-	_, hall := hsrv.HallRepository[req.HallID]
+	_, hall := h.HallRepository[req.HallID]
 	if hall {
 		fmt.Println("Found Hall")
-		h := hsrv.HallRepository[req.HallID]
+		found := h.HallRepository[req.HallID]
 		res.HallID = req.HallID
-		res.HallName = h.hallName
-		res.SeatsPerRow = h.seatsPerRow
-		res.Rows = h.rows
+		res.HallName = found.hallName
+		res.SeatsPerRow = found.seatsPerRow
+		res.Rows = found.rows
 
-		hsrv.mu.Unlock()
+		h.mu.Unlock()
 		fmt.Println("Unlocked GetHall")
 		fmt.Println("-----Exited GetHall-----")
 		return nil
 	}
 
 	res.HallID = 0
-	hsrv.mu.Unlock()
+	h.mu.Unlock()
 	fmt.Println("Unlocked GetHall")
 	fmt.Println("-----Exited GetHall-----")
-	return fmt.Errorf("The hall could not be found.")
+	return fmt.Errorf("the hall could not be found")
 }
 
-func (hsrv *HallMicroService) VerifySeat(context context.Context, req *HallService.VerifySeatMessage, res *HallService.VerifySeatResponse) error {
+func (h *HallMicroService) VerifySeat(_ context.Context, req *HallService.VerifySeatMessage, res *HallService.VerifySeatResponse) error {
 	fmt.Println("-----Entered VerifySeat-----")
-	hsrv.mu.Lock()
+	h.mu.Lock()
 	fmt.Println("Locked VerifySeat")
 	res.Success = false
 
-	_, hall := hsrv.HallRepository[req.HallID]
+	_, hall := h.HallRepository[req.HallID]
 	if hall {
 		fmt.Println("Found hall")
-		h := hsrv.HallRepository[req.HallID]
+		found := h.HallRepository[req.HallID]
 
 		for _, ele := range req.SeatID {
-			if ele > h.rows*h.seatsPerRow {
+			if ele > found.rows*found.seatsPerRow {
 				fmt.Println("The seats are not existing!")
-				hsrv.mu.Unlock()
+				h.mu.Unlock()
 				fmt.Println("Unlocked VerifySeat")
 				fmt.Println("-----Exited VerifySeat-----")
-				return fmt.Errorf("The seats are not existing.")
+				return fmt.Errorf("the seats are not existing")
 			}
 		}
 	} else {
-		hsrv.mu.Unlock()
+		h.mu.Unlock()
 		fmt.Println("Unlocked VerifySeat")
 		fmt.Println("-----Exited VerifySeat-----")
-		return fmt.Errorf("The hall could not be found.")
+		return fmt.Errorf("the hall could not be found")
 	}
 
 	res.Success = true
-	hsrv.mu.Unlock()
+	h.mu.Unlock()
 	fmt.Println("Unlocked VerifySeat")
 	fmt.Println("-----Exited VerifySeat-----")
 	return nil
 }
 
-func (hsrv *HallMicroService) SetBookingService(shsrv func() ShowService.ShowService) {
-	hsrv.mu.Lock()
-	hsrv.ShowService = shsrv
-	hsrv.mu.Unlock()
+func (h *HallMicroService) SetBookingService(sh func() ShowService.ShowService) {
+	h.mu.Lock()
+	h.ShowService = sh
+	h.mu.Unlock()
 }
 
-func (hsrv *HallMicroService) SetShowService(ssrv func() ShowService.ShowService) {
-	hsrv.mu.Lock()
-	hsrv.ShowService = ssrv
-	hsrv.mu.Unlock()
+func (h *HallMicroService) SetShowService(ssrv func() ShowService.ShowService) {
+	h.mu.Lock()
+	h.ShowService = ssrv
+	h.mu.Unlock()
 }
