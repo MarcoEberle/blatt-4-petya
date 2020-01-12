@@ -30,10 +30,15 @@ type BookingMicroService struct {
 	mu                *sync.Mutex
 }
 
+const (
+	PlayerNumberOne int32 = 1
+	MamboNumberFive int32 = 5
+)
+
 func Spawn() *BookingMicroService {
 	return &BookingMicroService{
 		bookingRepository: make(map[int32]*Booking),
-		NextId:            1,
+		NextId:            PlayerNumberOne,
 		mu:                &sync.Mutex{},
 	}
 }
@@ -56,7 +61,7 @@ func (b *BookingMicroService) ResetBookings() {
 	fmt.Println("Locked ResetBookings")
 
 	for bkID, ele := range b.bookingRepository {
-		if !ele.Confirmation.Confirmed && ele.Confirmation.time.After(ele.Confirmation.time.Add(time.Minute*5)) {
+		if !ele.Confirmation.Confirmed && ele.Confirmation.time.After(ele.Confirmation.time.Add(time.Minute*time.Duration(MamboNumberFive))) {
 			fmt.Printf("Booking expired: %d\n", bkID)
 			fmt.Println("Freeing seats in show...")
 			s := b.ShowService()
@@ -65,7 +70,7 @@ func (b *BookingMicroService) ResetBookings() {
 				BookingID: bkID,
 			}
 
-			_, err := s.FreeSeats(nil, message)
+			_, err := s.FreeSeats(context.TODO(), message)
 			if err != nil {
 				fmt.Println("Freeing seats failed!")
 				fmt.Println("Unlocked ResetBookings")
