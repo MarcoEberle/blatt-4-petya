@@ -19,10 +19,10 @@ pipeline {
             }
             steps {
                 //--deadline 20m --enable-all; --disable-all -E errcheck
-                sh 'cd HallService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll'
-                sh 'cd MovieService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll -D gosimple'
-                sh 'cd BookingService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll -D funlen -D unparam'
-                sh 'cd ShowService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll -D golint'
+                sh 'cd HallService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll -D goimports'
+                sh 'cd MovieService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll -D gosimple -D goimports'
+                sh 'cd BookingService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll -D funlen -D unparam -D goimports'
+                sh 'cd ShowService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll -D golint -D goimports'
                 sh 'cd UserService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll'
             }
         }
