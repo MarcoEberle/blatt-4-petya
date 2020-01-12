@@ -1,20 +1,22 @@
-Kommunikation zwischen den Services:
+# Kommunikation zwischen den Services:
     - über Proto (gRPC) Nachrichten
+    
+    - Bsp.: ![](link)
 
-BookingService:
+# BookingService:
     - HallService
     - ShowService
     
-HallService:
+# HallService:
     - ShowService
     
-MovieService:
+# MovieService:
     - ShowService
     
-ShowService:
+# ShowService:
     - MovieService
     - BookingService
     - HallService
     
-UserService:
+# UserService:
     - BookingService
