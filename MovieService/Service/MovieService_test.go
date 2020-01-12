@@ -26,9 +26,13 @@ func TestCreateMovie(t *testing.T) {
 func TestGetMovie(t *testing.T) {
 	service := Spawn()
 	r := MovieService.CreateMovieResponse{}
-	service.CreateMovie(context.TODO(), &MovieService.CreateMovieMessage{
+	err := service.CreateMovie(context.TODO(), &MovieService.CreateMovieMessage{
 		Title: "Scarlet Monastery",
 	}, &r)
+
+	if err == nil {
+		fmt.Println(err)
+	}
 
 	rr := MovieService.GetMovieResponse{}
 	er := service.GetMovie(context.TODO(), &MovieService.GetMovieMessage{

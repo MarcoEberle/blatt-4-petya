@@ -19,10 +19,14 @@ type MovieMicroService struct {
 	ShowService     func() ShowService.ShowService
 }
 
+const (
+	PlayerNumberOne int32 = 1
+)
+
 func Spawn() *MovieMicroService {
 	return &MovieMicroService{
 		MovieRepository: make(map[int32]*Movie),
-		NextID:          1,
+		NextID:          PlayerNumberOne,
 		mu:              &sync.Mutex{},
 	}
 }

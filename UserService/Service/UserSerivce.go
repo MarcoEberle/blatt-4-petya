@@ -19,12 +19,16 @@ type UserMicroService struct {
 	NextUserID     int32
 }
 
+const (
+	PlayerNumberOne int32 = 1
+)
+
 func Spawn() *UserMicroService {
 	return &UserMicroService{
 		userRepository: make(map[int32]*User),
 		BookingService: nil,
 		mu:             &sync.Mutex{},
-		NextUserID:     1,
+		NextUserID:     PlayerNumberOne,
 	}
 }
 

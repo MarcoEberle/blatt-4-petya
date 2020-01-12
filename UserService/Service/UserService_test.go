@@ -9,9 +9,6 @@ import (
 
 const (
 	User1 = "Loksey"
-	User2 = "Tim"
-	User3 = "Paulanius"
-	User4 = "Paulanius"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -33,9 +30,13 @@ func TestCreateUser(t *testing.T) {
 func TestGetUser(t *testing.T) {
 	service := Spawn()
 	r := UserService.CreateUserResponse{}
-	service.CreateUser(context.TODO(), &UserService.CreateUserMessage{
+	err := service.CreateUser(context.TODO(), &UserService.CreateUserMessage{
 		UserName: User1,
 	}, &r)
+
+	if err == nil {
+		fmt.Println(err)
+	}
 
 	rr := UserService.GetUserResponse{}
 	er := service.GetUser(context.TODO(), &UserService.GetUserMessage{
