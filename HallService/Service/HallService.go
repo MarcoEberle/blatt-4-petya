@@ -58,7 +58,11 @@ func (hsrv *HallMicroService) DeleteHall(context context.Context, req *HallServi
 			HallID: req.HallID,
 		}
 
-		s.KillShowsHall(context, message)
+		_, err := s.KillShowsHall(context, message)
+		if err != nil {
+			res.Success = false
+			return err
+		}
 
 		res.Success = true
 		hsrv.mu.Unlock()

@@ -29,17 +29,23 @@ func Spawn() *UserMicroService {
 }
 
 func (usrv *UserMicroService) CreateUser(context context.Context, req *UserService.CreateUserMessage, res *UserService.CreateUserResponse) error {
+	fmt.Println("-----Entered CreateUser-----")
 	if req.UserName != "" {
 		usrv.mu.Lock()
+		fmt.Println("Locked CreateUser")
 		usrv.userRepository[usrv.NextUserID] = &User{userName: req.UserName}
 		res.UserID = usrv.NextUserID
+		fmt.Println("Added CreateUser")
 		usrv.NextUserID++
+		fmt.Println("Increased ID")
 		defer usrv.mu.Unlock()
+		fmt.Println("Unlocked CreateUser")
 
 		fmt.Printf("Created user: %d %s", res.UserID, req.UserName)
 		return nil
 	}
-
+	fmt.Println("Username is empty!")
+	fmt.Println("-----Exited CreateUser-----")
 	return fmt.Errorf("The user could not be created.")
 }
 

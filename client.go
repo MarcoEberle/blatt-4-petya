@@ -83,17 +83,16 @@ func main() {
 	bookings = append(bookings, createBooking(
 		shows[0], users[0], []int32{10, 11, 12}, bookingService))
 
-	bookings = append(bookings, createBooking(
-		shows[0], users[1], []int32{10, 11, 12}, bookingService))
+	createBooking(shows[0], users[1], []int32{10, 11, 12}, bookingService)
 
 	bookings = append(bookings, createBooking(
-		shows[0], users[1], []int32{13, 14, 15}, bookingService))
+		shows[1], users[1], []int32{13, 14, 15}, bookingService))
 
 	bookings = append(bookings, createBooking(
-		shows[0], users[2], []int32{1, 2, 3}, bookingService))
+		shows[2], users[2], []int32{1, 2, 3}, bookingService))
 
 	bookings = append(bookings, createBooking(
-		shows[0], users[3], []int32{4, 5, 6}, bookingService))
+		shows[3], users[3], []int32{4, 5, 6}, bookingService))
 
 	// Confirm Booking
 
@@ -103,17 +102,31 @@ func main() {
 		bookings[0], users[0], bookingService))
 
 	confirmedBookings = append(confirmedBookings, confirmBooking(
-		bookings[2], users[1], bookingService))
+		bookings[1], users[1], bookingService))
 
 	confirmedBookings = append(confirmedBookings, confirmBooking(
-		bookings[3], users[2], bookingService))
+		bookings[2], users[2], bookingService))
 
 	confirmedBookings = append(confirmedBookings, confirmBooking(
-		bookings[4], users[3], bookingService))
+		bookings[3], users[3], bookingService))
 
 	/////////////////////////////////////////
-	//
+	// Delete Hall
 	/////////////////////////////////////////
+	deleteHall(halls[1], hallService)
+}
+
+func deleteHall(hallId int32, hallService HallService.HallService) {
+	res, err := hallService.DeleteHall(context.TODO(), &HallService.DeleteHallMessage{
+		HallID: hallId,
+	})
+
+	if err != nil || !res.Success {
+		fmt.Println(err)
+		fmt.Println("DeleteHall failed!")
+	} else {
+		fmt.Printf("Deleted hall %d\n", hallId)
+	}
 }
 
 func confirmBooking(bookingID int32, userID int32, bookingService BookingService.BookingService) int32 {
@@ -142,6 +155,26 @@ func confirmBooking(bookingID int32, userID int32, bookingService BookingService
 }
 
 func createBooking(showID int32, userID int32, seats []int32, bookingService BookingService.BookingService) int32 {
+
+	res, err := bookingService.CreateBooking(context.TODO(), &BookingService.CreateBookingMessage{
+		UserID: userID,
+		ShowID: showID,
+		Seats:  seats,
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Booking failed!")
+		return -1
+	} else {
+		fmt.Printf("Created booking:%d: show %d for user %d\n", res.BookingID, showID, userID)
+		return res.BookingID
+	}
+
+}
+
+/*
+func createBooking(showID int32, userID int32, seats []int32, bookingService BookingService.BookingService) int32 {
 	const timeout = 40 * time.Second
 
 	test1ID := int32(-1)
@@ -166,6 +199,7 @@ func createBooking(showID int32, userID int32, seats []int32, bookingService Boo
 
 	return test1ID
 }
+*/
 
 func createShow(hallID int32, movieID int32, showService ShowService.ShowService) int32 {
 	const timeout = 40 * time.Second

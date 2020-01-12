@@ -81,6 +81,7 @@ func (shsrv *ShowMicroService) CreateShow(ctx context.Context, req *ShowService.
 		tempErr = merr != nil
 		if !tempErr && m.MovieID <= 0 {
 			shsrv.mu.Unlock()
+			fmt.Println("The movie does not exist.")
 			return fmt.Errorf("The movie does not exist.")
 		}
 	}
@@ -98,6 +99,7 @@ func (shsrv *ShowMicroService) CreateShow(ctx context.Context, req *ShowService.
 		tempErr = herr != nil
 		if !tempErr && h.HallID <= 0 {
 			shsrv.mu.Unlock()
+			fmt.Println("The hall does not exist.")
 			return fmt.Errorf("The hall does not exist.")
 		}
 	}
@@ -145,6 +147,7 @@ func (shsrv *ShowMicroService) BlockSeats(ctx context.Context, req *ShowService.
 	_, exists := shsrv.ShowRepository[req.ShowID]
 	if !exists {
 		shsrv.mu.Unlock()
+		fmt.Println("The show could not be found.")
 		return fmt.Errorf("The show could not be found.")
 	}
 
@@ -159,6 +162,7 @@ func (shsrv *ShowMicroService) BlockSeats(ctx context.Context, req *ShowService.
 
 	status, err := h.VerifySeat(ctx, message)
 	if !status.Success || err != nil {
+		fmt.Println("The seats are not existing.")
 		return fmt.Errorf("The seats are not existing.")
 	}
 
@@ -167,6 +171,7 @@ func (shsrv *ShowMicroService) BlockSeats(ctx context.Context, req *ShowService.
 		_, alreadyTaken := shsrv.ShowRepository[req.ShowID].SeatRepository[ele]
 		if alreadyTaken {
 			shsrv.mu.Unlock()
+			fmt.Println("The seats are not available.")
 			return fmt.Errorf("The seats are not available.")
 		}
 	}
@@ -178,6 +183,9 @@ func (shsrv *ShowMicroService) BlockSeats(ctx context.Context, req *ShowService.
 			bookingID: req.BookingID,
 		}
 	}
+
+	res.BookingID = req.BookingID
+	res.Success = true
 	shsrv.mu.Unlock()
 	return nil
 }
@@ -229,7 +237,9 @@ func (shsrv *ShowMicroService) KillShowsHall(ctx context.Context, req *ShowServi
 				ShowID: index,
 			}
 
-			b.KillBookingsShow(ctx, message)
+			_, err := b.KillBookingsShow(ctx, message)
+			res.Success = false
+			return err
 		}
 	}
 

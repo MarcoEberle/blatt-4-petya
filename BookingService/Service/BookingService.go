@@ -113,20 +113,19 @@ func (bksrv *BookingMicroService) CreateBooking(ctx context.Context, req *Bookin
 	message := &ShowService.BlockSeatMessage{
 		BookingID: bksrv.NextId,
 		ShowID:    req.ShowID,
+		SeatID:    req.Seats,
 	}
 
-	tempErr := true
-	for tempErr {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		booking, err := s.BlockSeats(ctx, message)
+	booking, err := s.BlockSeats(ctx, message)
 
-		tempErr = err != nil
+	if err != nil {
+		bksrv.mu.Unlock()
+		return err
+	}
 
-		if !tempErr && !booking.Success {
-			bksrv.mu.Unlock()
-			return fmt.Errorf("The booking was rejected.")
-		}
+	if !booking.Success {
+		bksrv.mu.Unlock()
+		return fmt.Errorf("The booking was rejected.")
 	}
 
 	bksrv.bookingRepository[bksrv.NextId] = &Booking{
@@ -138,6 +137,7 @@ func (bksrv *BookingMicroService) CreateBooking(ctx context.Context, req *Bookin
 			Confirmed: false,
 		},
 	}
+	res.BookingID = bksrv.NextId
 
 	bksrv.NextId++
 
@@ -216,7 +216,7 @@ func (bksrv *BookingMicroService) KillBookingsShow(context context.Context, req 
 			bksrv.DeleteElement(context, index)
 		}
 	}
-
+	res.Success = true
 	bksrv.mu.Unlock()
 	return nil
 }
