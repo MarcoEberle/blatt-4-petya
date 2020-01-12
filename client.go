@@ -10,6 +10,7 @@ import (
 	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	UserService "github.com/ob-vss-ws19/blatt-4-petya/UserService/Service/messages"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -80,14 +81,14 @@ func main() {
 	bookingService := BookingService.NewBookingService("BookingService", clientService.Client())
 
 	bookings := []int32{}
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go doParallel(&wg, shows[0], users[0], []int32{10, 11, 12}, bookingService)
+	go doParallel(&wg, shows[0], users[1], []int32{10, 11, 12}, bookingService)
+	wg.Wait()
 
 	bookings = append(bookings, createBooking(
-		shows[0], users[0], []int32{10, 11, 12}, bookingService))
-
-	createBooking(shows[0], users[1], []int32{10, 11, 12}, bookingService)
-
-	bookings = append(bookings, createBooking(
-		shows[1], users[1], []int32{13, 14, 15}, bookingService))
+		shows[1], users[1], []int32{1, 2, 3}, bookingService))
 
 	bookings = append(bookings, createBooking(
 		shows[2], users[2], []int32{1, 2, 3}, bookingService))
@@ -100,16 +101,13 @@ func main() {
 	confirmedBookings := []int32{}
 
 	confirmedBookings = append(confirmedBookings, confirmBooking(
-		bookings[0], users[0], bookingService))
+		bookings[0], users[1], bookingService))
 
 	confirmedBookings = append(confirmedBookings, confirmBooking(
-		bookings[1], users[1], bookingService))
+		bookings[1], users[2], bookingService))
 
 	confirmedBookings = append(confirmedBookings, confirmBooking(
-		bookings[2], users[2], bookingService))
-
-	confirmedBookings = append(confirmedBookings, confirmBooking(
-		bookings[3], users[3], bookingService))
+		bookings[2], users[3], bookingService))
 
 	/////////////////////////////////////////
 	// Delete Hall
@@ -247,4 +245,9 @@ func getMovie(movieID int32, movieService MovieService.MovieService) string {
 	}
 
 	return test1Title
+}
+
+func doParallel(wg *sync.WaitGroup, showID int32, userID int32, seats []int32, bookingService BookingService.BookingService) int32 {
+	defer wg.Done()
+	return createBooking(showID, userID, seats, bookingService)
 }

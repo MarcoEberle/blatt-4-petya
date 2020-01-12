@@ -174,6 +174,10 @@ func (b *BookingMicroService) CreateBooking(ctx context.Context, req *BookingSer
 	b.NextId++
 	fmt.Println("Increased NextID")
 
+	for i, ele := range b.bookingRepository {
+		fmt.Printf("Booking (ID: %d): Show: %d User: %d\n", i, ele.ShowID, ele.UserID)
+	}
+
 	fmt.Println("Unlocked CreateBooking")
 	b.mu.Unlock()
 	fmt.Println("-----Exited CreateBooking-----")
