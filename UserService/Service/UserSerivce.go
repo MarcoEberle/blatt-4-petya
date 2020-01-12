@@ -50,7 +50,7 @@ func (usrv *UserMicroService) CreateUser(context context.Context, req *UserServi
 	}
 	fmt.Println("Username is empty!")
 	fmt.Println("-----Exited CreateUser-----")
-	return fmt.Errorf("The user could not be created.")
+	return fmt.Errorf("the user could not be created")
 }
 
 func (usrv *UserMicroService) DeleteUser(context context.Context, req *UserService.DeleteUserMessage, res *UserService.DeleteUserResponse) error {
@@ -65,7 +65,7 @@ func (usrv *UserMicroService) DeleteUser(context context.Context, req *UserServi
 		usrv.mu.Unlock()
 		fmt.Println("Unlocked DeleteUser!")
 		fmt.Println("-----Exited DeleteUser-----")
-		return fmt.Errorf("The user could not be deleted.")
+		return fmt.Errorf("the user could not be deleted")
 	}
 
 	b := usrv.BookingService()
@@ -112,7 +112,7 @@ func (usrv *UserMicroService) GetUser(context context.Context, req *UserService.
 	}
 	fmt.Println("User not found!")
 	fmt.Println("-----Exited GetUser-----")
-	return fmt.Errorf("The user could not be found.")
+	return fmt.Errorf("the user could not be found")
 }
 
 func (usrv *UserMicroService) SetBookingService(bksrv func() BookingService.BookingService) {
