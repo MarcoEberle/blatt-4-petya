@@ -34,6 +34,7 @@ func (usrv *UserMicroService) CreateUser(context context.Context, req *UserServi
 		usrv.mu.Lock()
 		fmt.Println("Locked CreateUser")
 		usrv.userRepository[usrv.NextUserID] = &User{userName: req.UserName}
+		fmt.Printf("Created user: %d %s\n", res.UserID, req.UserName)
 		res.UserID = usrv.NextUserID
 		fmt.Println("Added CreateUser")
 		usrv.NextUserID++
@@ -41,7 +42,7 @@ func (usrv *UserMicroService) CreateUser(context context.Context, req *UserServi
 		defer usrv.mu.Unlock()
 		fmt.Println("Unlocked CreateUser")
 
-		fmt.Printf("Created user: %d %s", res.UserID, req.UserName)
+		fmt.Println("-----Exited CreateUser-----")
 		return nil
 	}
 	fmt.Println("Username is empty!")
@@ -50,15 +51,23 @@ func (usrv *UserMicroService) CreateUser(context context.Context, req *UserServi
 }
 
 func (usrv *UserMicroService) DeleteUser(context context.Context, req *UserService.DeleteUserMessage, res *UserService.DeleteUserResponse) error {
+	fmt.Println("-----Entered DeleteUser-----")
+	usrv.mu.Lock()
+	fmt.Println("Locked DeleteUser")
 	res.Success = false
 	_, storedUser := usrv.userRepository[req.UserID]
 
 	if !storedUser {
+		fmt.Println("User not found!")
+		usrv.mu.Unlock()
+		fmt.Println("Unlocked DeleteUser!")
+		fmt.Println("-----Exited DeleteUser-----")
 		return fmt.Errorf("The user could not be deleted.")
 	}
 
 	b := usrv.BookingService()
 
+	fmt.Println("Delete users bookings...")
 	message := &BookingService.GetUserBookingsMessage{
 		UserID: req.UserID,
 	}
@@ -68,24 +77,39 @@ func (usrv *UserMicroService) DeleteUser(context context.Context, req *UserServi
 		deleteMessage := &BookingService.KillBookingsUserMessage{
 			UserID: req.UserID,
 		}
-		b.KillBookingsUser(context, deleteMessage)
+		_, err := b.KillBookingsUser(context, deleteMessage)
+		if err != nil {
+			fmt.Println("Error while deleting users bookings!")
+			usrv.mu.Unlock()
+			fmt.Println("Unlocked DeleteUser")
+			fmt.Println("-----Exited DeleteUser-----")
+			return err
+		}
 	}
 
 	delete(usrv.userRepository, req.UserID)
+	fmt.Println("Deleted user")
 	res.Success = true
 	usrv.mu.Unlock()
+	fmt.Println("Unlocked DeleteUser")
+	fmt.Println("-----Exited DeleteUser-----")
 	return nil
 }
 
 func (usrv *UserMicroService) GetUser(context context.Context, req *UserService.GetUserMessage, res *UserService.GetUserResponse) error {
+	fmt.Println("-----Entered GetUser-----")
 	_, storedUser := usrv.userRepository[req.UserID]
 
 	if storedUser {
+		fmt.Println("Found User")
 		res.UserID = req.UserID
 		res.UserName = usrv.userRepository[req.UserID].userName
+		fmt.Println("-----Exited GetUser-----")
+		return nil
 	}
-
-	return fmt.Errorf("The user could not be deleted.")
+	fmt.Println("User not found!")
+	fmt.Println("-----Exited GetUser-----")
+	return fmt.Errorf("The user could not be found.")
 }
 
 func (usrv *UserMicroService) SetBookingService(bksrv func() BookingService.BookingService) {
