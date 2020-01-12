@@ -29,10 +29,10 @@ pipeline {
         stage('Build Docker Image') {
             agent any
             steps {
-                //sh "docker-build-and-push -b ${BRANCH_NAME} -s HallService -f HallService/dockerfile ."
-                //sh "docker-build-and-push -b ${BRANCH_NAME} -s MovieService -f MovieService/dockerfile ."
-                //sh "docker-build-and-push -b ${BRANCH_NAME} -s BookingService -f BookingService/dockerfile ."
-                //sh "docker-build-and-push -b ${BRANCH_NAME} -s ShowService -f ShowService/dockerfile ."
+                sh "docker-build-and-push -b ${BRANCH_NAME} -s HallService -f HallService/dockerfile ."
+                sh "docker-build-and-push -b ${BRANCH_NAME} -s MovieService -f MovieService/dockerfile ."
+                sh "docker-build-and-push -b ${BRANCH_NAME} -s BookingService -f BookingService/dockerfile ."
+                sh "docker-build-and-push -b ${BRANCH_NAME} -s ShowService -f ShowService/dockerfile ."
                 sh "docker-build-and-push -b ${BRANCH_NAME} -s UserService -f UserService/dockerfile ."
             }
         }
