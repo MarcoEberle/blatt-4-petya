@@ -8,7 +8,6 @@ import (
 	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/Service/messages"
 	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	"sync"
-	"time"
 )
 
 const (
@@ -84,18 +83,6 @@ func (shsrv *ShowMicroService) CreateShow(ctx context.Context, req *ShowService.
 		return fmt.Errorf("The movie does not exist.")
 	}
 
-	/*tempErr := true
-	for tempErr {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		m, merr := m.GetMovie(ctx, mmes)
-		tempErr = merr != nil
-		if !tempErr && m.MovieID <= 0 {
-			shsrv.mu.Unlock()
-			fmt.Println("The movie does not exist.")
-			return fmt.Errorf("The movie does not exist.")
-		}
-	}*/
 	fmt.Println("Verifying Hall...")
 	h := shsrv.HallService()
 	hmes := &HallService.GetHallMessage{
@@ -111,21 +98,6 @@ func (shsrv *ShowMicroService) CreateShow(ctx context.Context, req *ShowService.
 		fmt.Println("-----Exited CreateShow-----")
 		return fmt.Errorf("The hall does not exist.")
 	}
-
-	/*tempErr = true
-	for tempErr {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		h, herr := h.GetHall(ctx, hmes)
-		tempErr = herr != nil
-		if !tempErr && h.HallID <= 0 {
-			shsrv.mu.Unlock()
-			fmt.Println("The hall does not exist.")
-			fmt.Println("Unlocked CreateShow")
-			fmt.Println("-----Exited CreateShow-----")
-			return fmt.Errorf("The hall does not exist.")
-		}
-	}*/
 
 	shsrv.ShowRepository[shsrv.NextID] = &Show{
 		hallID:         req.HallID,
@@ -322,10 +294,7 @@ func (shsrv *ShowMicroService) KillShowsHall(ctx context.Context, req *ShowServi
 			message := &BookingService.KillBookingsShowMessage{
 				ShowID: index,
 			}
-			const timeout = 100 * time.Second
-			ctxLong, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-			_, err := b.KillBookingsShow(ctxLong, message)
+			_, err := b.KillBookingsShow(ctx, message)
 			if err != nil {
 				res.Success = false
 				fmt.Println("Error while deleting bookings")

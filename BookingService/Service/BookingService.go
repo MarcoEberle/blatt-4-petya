@@ -194,10 +194,7 @@ func (bksrv *BookingMicroService) DeleteElement(ctx context.Context, bookingID i
 		BookingID: bookingID,
 	}
 
-	const timeout = 20 * time.Second
-	ctxLong, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	_, err := s.FreeSeats(ctxLong, message)
+	_, err := s.FreeSeats(ctx, message)
 	if err != nil {
 		fmt.Println("Error while freeing seats")
 		fmt.Println("-----Exited DeleteElement-----")
@@ -270,10 +267,7 @@ func (bksrv *BookingMicroService) KillBookingsShow(ctx context.Context, req *Boo
 	fmt.Println("Deleting bookings...")
 	for index, ele := range bksrv.bookingRepository {
 		if ele.ShowID == req.ShowID {
-			const timeout = 70 * time.Second
-			ctxLong, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-			err := bksrv.DeleteElement(ctxLong, index)
+			err := bksrv.DeleteElement(ctx, index)
 			if err != nil {
 				fmt.Println("Deleting booking failed")
 				fmt.Println("Unlocked KillBookingsShow")
@@ -299,10 +293,7 @@ func (bksrv *BookingMicroService) KillBookingsUser(ctx context.Context, req *Boo
 
 	for index, ele := range bksrv.bookingRepository {
 		if ele.UserID == req.UserID {
-			const timeout = 10 * time.Second
-			ctxLong, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-			err := bksrv.DeleteElement(ctxLong, index)
+			err := bksrv.DeleteElement(ctx, index)
 			if err != nil {
 				fmt.Println("Deleting booking failed")
 				fmt.Println("Unlocked KillBookingsShow")

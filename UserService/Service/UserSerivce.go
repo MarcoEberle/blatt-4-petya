@@ -34,9 +34,8 @@ func (usrv *UserMicroService) CreateUser(context context.Context, req *UserServi
 		usrv.mu.Lock()
 		fmt.Println("Locked CreateUser")
 		usrv.userRepository[usrv.NextUserID] = &User{userName: req.UserName}
-		fmt.Printf("Created user: %d %s\n", res.UserID, req.UserName)
 		res.UserID = usrv.NextUserID
-		fmt.Println("Added CreateUser")
+		fmt.Printf("Created user: %d %s\n", res.UserID, req.UserName)
 		usrv.NextUserID++
 		fmt.Println("Increased ID")
 		defer usrv.mu.Unlock()

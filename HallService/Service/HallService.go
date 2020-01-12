@@ -6,7 +6,6 @@ import (
 	HallService "github.com/ob-vss-ws19/blatt-4-petya/HallService/Service/messages"
 	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	"sync"
-	"time"
 )
 
 type Hall struct {
@@ -67,10 +66,8 @@ func (hsrv *HallMicroService) DeleteHall(ctx context.Context, req *HallService.D
 		message := &ShowService.KillShowsHallMessage{
 			HallID: req.HallID,
 		}
-		const timeout = 200 * time.Second
-		ctxLong, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		_, err := s.KillShowsHall(ctxLong, message)
+
+		_, err := s.KillShowsHall(ctx, message)
 		if err != nil {
 			fmt.Println("Error while deleting halls shows!")
 			res.Success = false

@@ -9,6 +9,7 @@ import (
 	MovieService "github.com/ob-vss-ws19/blatt-4-petya/MovieService/Service/messages"
 	ShowService "github.com/ob-vss-ws19/blatt-4-petya/ShowService/Service/messages"
 	UserService "github.com/ob-vss-ws19/blatt-4-petya/UserService/Service/messages"
+	"os"
 	"time"
 )
 
@@ -130,32 +131,23 @@ func deleteHall(hallId int32, hallService HallService.HallService) {
 }
 
 func confirmBooking(bookingID int32, userID int32, bookingService BookingService.BookingService) int32 {
-	const timeout = 40 * time.Second
+	res, err := bookingService.ConfirmBooking(context.TODO(), &BookingService.ConfirmBookingMessage{
+		UserID:    userID,
+		BookingID: bookingID,
+	})
 
-	test1ID := int32(-1)
-	for test1ID == -1 {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		res, err := bookingService.ConfirmBooking(ctx, &BookingService.ConfirmBookingMessage{
-			UserID:    userID,
-			BookingID: bookingID,
-		})
-
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Retrying...")
-		} else {
-			test1ID = res.BookingID
-		}
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Retrying...")
+		os.Exit(-1)
 	}
 
-	fmt.Printf("Confirmed booking:%d: show %d for user %d\n", test1ID, bookingID, userID)
+	fmt.Printf("Confirmed booking:%d: show %d for user %d\n", res.BookingID, bookingID, userID)
 
-	return test1ID
+	return res.BookingID
 }
 
 func createBooking(showID int32, userID int32, seats []int32, bookingService BookingService.BookingService) int32 {
-
 	res, err := bookingService.CreateBooking(context.TODO(), &BookingService.CreateBookingMessage{
 		UserID: userID,
 		ShowID: showID,
@@ -170,137 +162,69 @@ func createBooking(showID int32, userID int32, seats []int32, bookingService Boo
 		fmt.Printf("Created booking:%d: show %d for user %d\n", res.BookingID, showID, userID)
 		return res.BookingID
 	}
-
 }
-
-/*
-func createBooking(showID int32, userID int32, seats []int32, bookingService BookingService.BookingService) int32 {
-	const timeout = 40 * time.Second
-
-	test1ID := int32(-1)
-	for test1ID == -1 {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		res, err := bookingService.CreateBooking(ctx, &BookingService.CreateBookingMessage{
-			UserID: userID,
-			ShowID: showID,
-			Seats:  seats,
-		})
-
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Retrying...")
-		} else {
-			test1ID = res.BookingID
-		}
-	}
-
-	fmt.Printf("Created booking:%d: show %d for user %d\n", test1ID, showID, userID)
-
-	return test1ID
-}
-*/
 
 func createShow(hallID int32, movieID int32, showService ShowService.ShowService) int32 {
-	const timeout = 40 * time.Second
+	res, err := showService.CreateShow(context.TODO(), &ShowService.CreateShowMessage{
+		MovieID: movieID,
+		HallID:  hallID,
+	})
 
-	test1ID := int32(-1)
-	for test1ID == -1 {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		res, err := showService.CreateShow(ctx, &ShowService.CreateShowMessage{
-			MovieID: movieID,
-			HallID:  hallID,
-		})
-
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Retrying...")
-		} else {
-			test1ID = res.ShowID
-		}
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
 	}
 
-	fmt.Printf("Created show:%d: movie %d in hall %d\n", test1ID, movieID, hallID)
+	fmt.Printf("Created show:%d: movie %d in hall %d\n", res.ShowID, movieID, hallID)
 
-	return test1ID
+	return res.ShowID
 }
 
 func createUser(name string, userService UserService.UserService) int32 {
-	const timeout = 20 * time.Second
+	res, err := userService.CreateUser(context.TODO(), &UserService.CreateUserMessage{
+		UserName: name,
+	})
 
-	test1ID := int32(-1)
-	for test1ID == -1 {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		res, err := userService.CreateUser(ctx, &UserService.CreateUserMessage{
-			UserName: name,
-		})
-
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Retrying...")
-		} else {
-			test1ID = res.UserID
-		}
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
 	}
 
-	fmt.Printf("Created user: %s with ID %d\n", name, test1ID)
+	fmt.Printf("Created user: %s with ID %d\n", name, res.UserID)
 
-	return test1ID
+	return res.UserID
 }
 
 func createHall(name string, rows int32, seatsPerRow int32, hallService HallService.HallService) int32 {
-	const timeout = 20 * time.Second
+	res, err := hallService.CreateHall(context.TODO(), &HallService.CreateHallMessage{
+		HallName:    name,
+		Rows:        rows,
+		SeatsPerRow: seatsPerRow,
+	})
 
-	test1ID := int32(-1)
-	for test1ID == -1 {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		res, err := hallService.CreateHall(ctx, &HallService.CreateHallMessage{
-			HallName:    name,
-			Rows:        rows,
-			SeatsPerRow: seatsPerRow,
-		})
-
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Retrying...")
-		}
-		if res.HallID > 0 {
-			test1ID = res.HallID
-		}
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
 	}
 
-	fmt.Printf("Created hall: %s with ID %d\n", name, test1ID)
+	fmt.Printf("Created hall: %s with ID %d\n", name, res.HallID)
 
-	return test1ID
+	return res.HallID
 }
 
 func createMovie(name string, movieService MovieService.MovieService) int32 {
-	const timeout = 20 * time.Second
+	res, err := movieService.CreateMovie(context.TODO(), &MovieService.CreateMovieMessage{
+		Title: name,
+	})
 
-	test1ID := int32(-1)
-	for test1ID == -1 {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		res, err := movieService.CreateMovie(ctx, &MovieService.CreateMovieMessage{
-			Title: name,
-		})
-
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Retrying...")
-		}
-
-		if res.MovieID > 0 {
-			test1ID = res.MovieID
-		}
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
 	}
 
-	fmt.Printf("Created movie: %s with ID %d\n", name, test1ID)
+	fmt.Printf("Created movie: %s with ID %d\n", name, res.MovieID)
 
-	return test1ID
+	return res.MovieID
 }
 
 func getMovie(movieID int32, movieService MovieService.MovieService) string {
