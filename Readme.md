@@ -1,13 +1,14 @@
-Anleitung:
+# Anleitung:
 
 1. Starten Sie alle Servies. Dazu können Sie die StartAllServices.sh benutzen.
 
 2. Starten Sie client.go
 
-Anmerkung zum Client:
+# Anmerkung zum Client:
 
 Der Client führt das verlangte Szenario komplett aus.
 Folgende Schritte werden ausgeführt:
+```
     1. Erstellung von 4 Filmen
     2. Erstellung von 2 Sälen
     3. Erstellung von 4 Benutzern
@@ -23,5 +24,6 @@ Folgende Schritte werden ausgeführt:
         Dort sehen Sie, dass von den vier Bookings nur noch zwei übrig bleiben.
         ShowID1 und ShowID2 sind in Halle HallID1
         Alle Shows und somit Bookings der HallID2 wurden gelöscht.
-    
-Alle Prozesse werden im Client geloggt bzw. ausführlich in den jeweiligen Services geloggt.
+```
+
+# Alle Prozesse werden im Client geloggt bzw. ausführlich in den jeweiligen Services geloggt.
