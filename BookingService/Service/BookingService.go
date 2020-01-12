@@ -289,6 +289,10 @@ func (b *BookingMicroService) KillBookingsShow(ctx context.Context, req *Booking
 	fmt.Println("Deleted bookings")
 	res.Success = true
 
+	for i, ele := range b.bookingRepository {
+		fmt.Printf("Booking (ID: %d): Show: %d User: %d\n", i, ele.ShowID, ele.UserID)
+	}
+
 	fmt.Println("Unlocked KillBookingsShow")
 	b.mu.Unlock()
 	fmt.Println("-----Exited KillBookingsShow-----")
