@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	Blocked int32 = 1
-	Taken   int32 = 2
+	PlayerNumberOne int32 = 1
+	Blocked         int32 = 1
+	Taken           int32 = 2
 )
 
 type Seat struct {
@@ -39,7 +40,7 @@ type ShowMicroService struct {
 func Spawn() *ShowMicroService {
 	return &ShowMicroService{
 		ShowRepository: make(map[int32]*Show),
-		NextID:         1,
+		NextID:         PlayerNumberOne,
 		mu:             &sync.Mutex{},
 		DeleteMode:     false,
 	}
