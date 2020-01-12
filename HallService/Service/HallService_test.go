@@ -7,13 +7,17 @@ import (
 	"testing"
 )
 
+const (
+	MightyNumber4 int32 = 4
+)
+
 func TestCreateHall(t *testing.T) {
 	service := Spawn()
 	r := HallService.CreateHallResponse{}
 	er := service.CreateHall(context.TODO(), &HallService.CreateHallMessage{
 		HallName:    "Halls of Stone",
-		Rows:        4,
-		SeatsPerRow: 4,
+		Rows:        MightyNumber4,
+		SeatsPerRow: MightyNumber4,
 	}, &r)
 
 	if er == nil {
@@ -28,11 +32,15 @@ func TestCreateHall(t *testing.T) {
 func TestGetHall(t *testing.T) {
 	service := Spawn()
 	r := HallService.CreateHallResponse{}
-	service.CreateHall(context.TODO(), &HallService.CreateHallMessage{
+	err := service.CreateHall(context.TODO(), &HallService.CreateHallMessage{
 		HallName:    "Halls of Stone",
-		Rows:        4,
-		SeatsPerRow: 4,
+		Rows:        MightyNumber4,
+		SeatsPerRow: MightyNumber4,
 	}, &r)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	rr := HallService.GetHallResponse{}
 	er := service.GetHall(context.TODO(), &HallService.GetHallMessage{
@@ -51,11 +59,15 @@ func TestGetHall(t *testing.T) {
 func TestVerifySeatl(t *testing.T) {
 	service := Spawn()
 	r := HallService.CreateHallResponse{}
-	service.CreateHall(context.TODO(), &HallService.CreateHallMessage{
+	err := service.CreateHall(context.TODO(), &HallService.CreateHallMessage{
 		HallName:    "Halls of Stone",
-		Rows:        4,
-		SeatsPerRow: 4,
+		Rows:        MightyNumber4,
+		SeatsPerRow: MightyNumber4,
 	}, &r)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	rr := HallService.VerifySeatResponse{}
 	er := service.VerifySeat(context.TODO(), &HallService.VerifySeatMessage{

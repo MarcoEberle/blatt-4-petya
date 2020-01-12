@@ -8,6 +8,10 @@ import (
 	"sync"
 )
 
+const (
+	PlayerNumberOne int32 = 1
+)
+
 type Hall struct {
 	hallName    string
 	rows        int32
@@ -24,7 +28,7 @@ type HallMicroService struct {
 func Spawn() *HallMicroService {
 	return &HallMicroService{
 		HallRepository: make(map[int32]*Hall),
-		NextID:         1,
+		NextID:         PlayerNumberOne,
 		mu:             &sync.Mutex{},
 	}
 }
