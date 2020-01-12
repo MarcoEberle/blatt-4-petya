@@ -1,0 +1,9 @@
+FROM obraun/vss-protoactor-jenkins as builder
+COPY . /app
+WORKDIR /app/MovieService
+ 
+RUN go build -o MovieService main.go
+
+FROM iron/go
+EXPOSE 8200
+ENTRYPOINT ["/app/MovieService"]

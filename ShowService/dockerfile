@@ -1,0 +1,9 @@
+FROM obraun/vss-protoactor-jenkins as builder
+COPY . /app
+WORKDIR /app/ShowService
+ 
+RUN go build -o ShowService main.go
+
+FROM iron/go
+EXPOSE 8200
+ENTRYPOINT ["/app/ShowService"]

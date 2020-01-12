@@ -1,0 +1,9 @@
+FROM obraun/vss-protoactor-jenkins as builder
+COPY . /app
+WORKDIR /app/BookingService
+ 
+RUN go build -o BookingService main.go
+
+FROM iron/go
+EXPOSE 8200
+ENTRYPOINT ["/app/BookingService"]

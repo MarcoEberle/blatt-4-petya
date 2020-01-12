@@ -1,0 +1,9 @@
+FROM obraun/vss-protoactor-jenkins as builder
+COPY . /app
+WORKDIR /app/HallService
+ 
+RUN go build -o HallService main.go
+
+FROM iron/go
+EXPOSE 8200
+ENTRYPOINT ["/app/HallService"]
