@@ -13,7 +13,7 @@ pipeline {
                 sh 'cd UserService && go build main.go'
             }
         }
-        stage('Lint') {
+        /*stage('Lint') {
             agent {
                 docker { image 'obraun/vss-protoactor-jenkins' }
             }
@@ -25,7 +25,7 @@ pipeline {
                 sh 'cd ShowService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll -D golint'
                 sh 'cd UserService && golangci-lint run --enable-all --skip-dirs proto -D wsl -D lll'
             }
-        }
+        }*/
         stage('Build Docker Image') {
             agent any
             steps {
